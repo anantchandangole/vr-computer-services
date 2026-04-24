@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printer Services - VR Computer Services</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background: #f5f7fb;
+        }
+
+        header {
+            background: linear-gradient(90deg, hsl(192, 100%, 44%), hsl(110, 100%, 67%));
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo img {
+            height: 50px;
+        }
+
+        .logo span {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        nav a {
+            color: white;
+            margin: 5px;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            padding: 40px 20px;
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .page-title {
+            text-align: center;
+            color: #0d6efd;
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .service-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .service-card i {
+            font-size: 40px;
+            color: #0d6efd;
+            margin-bottom: 15px;
+        }
+
+        .service-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .service-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .contact-section {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-top: 40px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .contact-btn {
+            background: #0d6efd;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .contact-btn:hover {
+            background: #0b5ed7;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <img src="images/logo.png" alt="Logo">
+            <span><strong>VR Computer</strong> Services</span>
+        </a>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="computer.html">Computer</a>
+            <a href="printer.html" style="background: rgba(255,255,255,0.3);">Printer</a>
+            <a href="networking.html">Networking</a>
+            <a href="amc.html">AMC</a>
+            <a href="login.html">Login</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">Printer Services</h1>
+
+        <div class="services-grid">
+            <div class="service-card">
+                <i class="fa-solid fa-print"></i>
+                <h3>Printer Repair</h3>
+                <p>Complete printer repair for all brands including HP, Canon, Epson, Brother, and more. Hardware and software issues.</p>
+            </div>
+
+            <div class="service-card">
+                <i class="fa-solid fa-fill-drip"></i>
+                <h3>Cartridge Refilling</h3>
+                <p>High-quality ink cartridge refilling for all printer models. Cost-effective and reliable printing solutions.</p>
+            </div>
+
+            <div class="service-card">
+                <i class="fa-solid fa-rotate"></i>
+                <h3>Toner Replacement</h3>
+                <p>Genuine and compatible toner cartridge replacement for laser printers. Sharp and professional print quality.</p>
+            </div>
+
+            <div class="service-card">
+                <i class="fa-solid fa-wrench"></i>
+                <h3>Preventive Maintenance</h3>
+                <p>Regular printer maintenance to prevent breakdowns and extend printer life. Cleaning and calibration services.</p>
+            </div>
+
+            <div class="service-card">
+                <i class="fa-solid fa-network-wired"></i>
+                <h3>Network Printer Setup</h3>
+                <p>Configure and setup network printers for office environments. Wireless and wired printer installation.</p>
+            </div>
+
+            <div class="service-card">
+                <i class="fa-solid fa-truck-fast"></i>
+                <h3>On-Site Service</h3>
+                <p>Quick on-site printer service at your location. Minimal downtime for your business operations.</p>
+            </div>
+        </div>
+
+        <div class="contact-section">
+            <h2>Need Printer Service?</h2>
+            <p>Call us for fast and reliable service</p>
+            <a href="tel:+917773926596" class="contact-btn">
+                <i class="fa-solid fa-phone"></i> Call +91 77739 26596
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineer Portal - VR Computer Services</title>
+    <link rel="stylesheet" href="css/engineer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Login Section -->
+    <div id="loginSection" class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <i class="fas fa-tools"></i>
+                <h2>Engineer Login</h2>
+                <p>VR Computer Services</p>
+            </div>
+            <form id="engineerLoginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="engineerUsername" placeholder="Enter username (e.g., vrcs01)" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="engineerPassword" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <p id="loginError" class="error-message"></p>
+            </form>
+            <p class="back-link">
+                <a href="/">Back to Home</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboardSection" class="dashboard-container">
+        <!-- Header -->
+        <header class="top-header">
+            <div class="header-brand">
+                <i class="fas fa-tools"></i>
+                <span>VR Computer Services</span>
+            </div>
+            <div class="header-user">
+                <span id="engineerName">Engineer</span>
+                <button class="btn btn-sm btn-secondary" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Status Card -->
+            <div class="status-card">
+                <div class="status-header">
+                    <h3>Today's Status</h3>
+                    <span id="currentDate"></span>
+                </div>
+                <div class="status-content" id="statusContent">
+                    <p>Loading...</p>
+                </div>
+            </div>
+
+            <!-- Clock In Section -->
+            <div class="action-section" id="clockInSection">
+                <div class="section-title">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <h3>Clock In</h3>
+                </div>
+                <form id="clockInForm">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <button type="button" class="btn btn-secondary" id="getLocationBtn">
+                            <i class="fas fa-map-marker-alt"></i> Get Current Location
+                        </button>
+                        <input type="hidden" id="locationLat">
+                        <input type="hidden" id="locationLng">
+                        <input type="text" id="locationAddress" placeholder="Location address" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Photo</label>
+                        <input type="file" id="photoInput" accept="image/*" capture="environment">
+                        <div id="photoPreview"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Remark</label>
+                        <textarea id="clockInRemark" placeholder="Today's work plan or location details"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <i class="fas fa-sign-in-alt"></i> Clock In
+                    </button>
+                </form>
+            </div>
+
+            <!-- Clock Out Section -->
+            <div class="action-section" id="clockOutSection" style="display: none;">
+                <div class="section-title">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <h3>Clock Out</h3>
+                </div>
+                <form id="clockOutForm">
+                    <div class="form-group">
+                        <label>Task Completed</label>
+                        <textarea id="taskCompleted" placeholder="Describe what you completed today"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Additional Remark</label>
+                        <textarea id="clockOutRemark" placeholder="Any additional notes"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger btn-large">
+                        <i class="fas fa-sign-out-alt"></i> Clock Out
+                    </button>
+                </form>
+            </div>
+
+            <!-- Update Status Section -->
+            <div class="action-section" id="updateStatusSection" style="display: none;">
+                <div class="section-title">
+                    <i class="fas fa-edit"></i>
+                    <h3>Update Status</h3>
+                </div>
+                <form id="updateStatusForm">
+                    <div class="form-group">
+                        <label>Current Status</label>
+                        <select id="currentStatus">
+                            <option value="Working">Working</option>
+                            <option value="Idle">Idle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Update Location</label>
+                        <button type="button" class="btn btn-secondary" id="updateLocationBtn">
+                            <i class="fas fa-map-marker-alt"></i> Update Location
+                        </button>
+                        <input type="hidden" id="updateLocationLat">
+                        <input type="hidden" id="updateLocationLng">
+                        <input type="text" id="updateLocationAddress" placeholder="Current location" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Remark</label>
+                        <textarea id="updateRemark" placeholder="Current work status"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Status
+                    </button>
+                </form>
+            </div>
+
+            <!-- Attendance History -->
+            <div class="history-section">
+                <div class="section-title">
+                    <i class="fas fa-history"></i>
+                    <h3>Attendance History</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>In Time</th>
+                                <th>Out Time</th>
+                                <th>Working Hours</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/engineer.js"></script>
+</body>
+</html>
