@@ -143,6 +143,104 @@
             color: #666;
             font-size: 14px;
         }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px 10px;
+            }
+
+            .logo img {
+                height: 40px;
+            }
+
+            .logo span {
+                font-size: 16px;
+            }
+
+            nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                margin-top: 10px;
+            }
+
+            nav a {
+                font-size: 12px;
+                padding: 5px 8px;
+                margin: 3px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .info-card {
+                padding: 30px 20px;
+            }
+
+            .info-card i {
+                font-size: 60px;
+            }
+
+            .info-card h2 {
+                font-size: 24px;
+            }
+
+            .info-card p {
+                font-size: 16px;
+            }
+
+            .login-btn {
+                padding: 12px 30px;
+                font-size: 16px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .feature-item {
+                padding: 20px;
+            }
+
+            .feature-item i {
+                font-size: 32px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 24px;
+            }
+
+            .logo img {
+                height: 35px;
+            }
+
+            .logo span {
+                font-size: 14px;
+            }
+
+            .info-card i {
+                font-size: 50px;
+            }
+
+            .info-card h2 {
+                font-size: 20px;
+            }
+
+            .info-card p {
+                font-size: 14px;
+            }
+
+            .login-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>

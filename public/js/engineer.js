@@ -6,6 +6,11 @@ let currentUser = null;
 
 // Check authentication on page load
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Engineer.js loaded');
+    
+    const loginForm = document.getElementById('engineerLoginForm');
+    console.log('Login form found:', loginForm ? 'Yes' : 'No');
+    
     if (authToken) {
         const userData = localStorage.getItem('engineerUser');
         if (userData) {
@@ -54,19 +59,26 @@ function showDashboard() {
 // Engineer Login
 document.getElementById('engineerLoginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log('Engineer login form submitted');
     
     const username = document.getElementById('engineerUsername').value;
     const password = document.getElementById('engineerPassword').value;
     const errorElement = document.getElementById('loginError');
 
+    console.log('Username:', username);
+    console.log('Password length:', password.length);
+
     try {
+        console.log('Sending login request to:', `${API_BASE}/auth/engineer/login`);
         const response = await fetch(`${API_BASE}/auth/engineer/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
 
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
 
         if (data.success) {
             authToken = data.token;
@@ -76,9 +88,11 @@ document.getElementById('engineerLoginForm').addEventListener('submit', async (e
             showDashboard();
         } else {
             errorElement.textContent = data.message || 'Login failed';
+            console.error('Login failed:', data.message);
         }
     } catch (error) {
         errorElement.textContent = 'Server error. Please try again.';
+        console.error('Login error:', error);
     }
 });
 

@@ -104,11 +104,17 @@ router.post('/', authenticate, adminOnly, [
 // Update Engineer (Admin Only)
 router.put('/:id', authenticate, adminOnly, async (req, res) => {
   try {
-    const { name, mobile, status, photo } = req.body;
+    const { name, mobile, status, photo, password } = req.body;
+    const updateData = { name, mobile, status, photo };
+    
+    // Only update password if provided
+    if (password) {
+      updateData.password = password;
+    }
     
     const engineer = await Engineer.findOneAndUpdate(
       { username: req.params.id },
-      { name, mobile, status, photo },
+      updateData,
       { new: true }
     ).select('-password');
 

@@ -119,6 +119,111 @@
             color: white;
             font-size: 60px;
         }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px 10px;
+            }
+
+            .logo img {
+                height: 40px;
+            }
+
+            .logo span {
+                font-size: 16px;
+            }
+
+            nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                margin-top: 10px;
+            }
+
+            nav a {
+                font-size: 12px;
+                padding: 5px 8px;
+                margin: 3px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .gallery-item {
+                border-radius: 10px;
+            }
+
+            .slideshow-container {
+                max-width: 100%;
+                margin: 0 10px;
+            }
+
+            .slideshow-slide img {
+                height: 300px;
+            }
+
+            .slideshow-info {
+                padding: 20px;
+            }
+
+            .slideshow-info h3 {
+                font-size: 22px;
+            }
+
+            .slideshow-nav {
+                padding: 10px 15px;
+                font-size: 20px;
+            }
+
+            .view-toggle button {
+                padding: 10px 20px;
+                font-size: 14px;
+                margin: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 24px;
+            }
+
+            .logo img {
+                height: 35px;
+            }
+
+            .logo span {
+                font-size: 14px;
+            }
+
+            .slideshow-slide img {
+                height: 250px;
+            }
+
+            .slideshow-info h3 {
+                font-size: 18px;
+            }
+
+            .slideshow-info p {
+                font-size: 14px;
+            }
+
+            .slideshow-nav {
+                padding: 8px 12px;
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>

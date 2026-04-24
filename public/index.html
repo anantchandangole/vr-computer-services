@@ -143,12 +143,21 @@
             header {
                 flex-direction: column;
                 text-align: center;
+                padding: 15px 10px;
             }
+
+            .logo img {
+                height: 40px;
+            }
+
+            .logo span { font-size: 16px; }
+            .brand-main { font-size: 20px; }
 
             .menu-toggle {
                 display: block;
                 color: white;
                 margin-top: 10px;
+                font-size: 24px;
             }
 
             nav {
@@ -171,6 +180,7 @@
                 opacity: 0;
                 transform: translateY(-10px);
                 transition: 0.3s;
+                font-size: 14px;
             }
 
             nav.active {
@@ -183,9 +193,41 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
 
-            .logo span { font-size: 18px; }
-            .brand-main { font-size: 24px; }
+        @media (max-width: 480px) {
+            .logo img {
+                height: 35px;
+            }
+
+            .logo span { font-size: 14px; }
+            .brand-main { font-size: 18px; }
+
+            .hero h1 {
+                font-size: 24px;
+            }
+
+            .hero button {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
+            .services {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .card i {
+                font-size: 24px;
+            }
+
+            footer p {
+                font-size: 12px;
+            }
         }
 
         .container {

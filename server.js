@@ -28,10 +28,7 @@ app.use('/imag', express.static(path.join(__dirname, 'imag')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Database Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/vr-computer-services', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/vr-computer-services')
 .then(() => console.log('✅ MongoDB Connected Successfully'))
 .catch(err => console.error('❌ MongoDB Connection Error:', err));
 

@@ -5,12 +5,58 @@ let authToken = localStorage.getItem('adminToken');
 
 // Check authentication on page load
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Admin.js loaded');
+    
+    const loginForm = document.getElementById('adminLoginForm');
+    console.log('Login form found:', loginForm ? 'Yes' : 'No');
+    
     if (authToken) {
         showDashboard();
     } else {
         showLogin();
     }
 });
+
+// Admin Login Event Listener
+const loginForm = document.getElementById('adminLoginForm');
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        console.log('Admin login form submitted');
+        
+        const username = document.getElementById('adminUsername').value;
+        const password = document.getElementById('adminPassword').value;
+        const errorElement = document.getElementById('loginError');
+
+        console.log('Username:', username);
+        console.log('Password length:', password.length);
+
+        try {
+            console.log('Sending login request to:', `${API_BASE}/auth/admin/login`);
+            const response = await fetch(`${API_BASE}/auth/admin/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            console.log('Response status:', response.status);
+            const data = await response.json();
+            console.log('Response data:', data);
+
+            if (data.success) {
+                authToken = data.token;
+                localStorage.setItem('adminToken', authToken);
+                showDashboard();
+            } else {
+                errorElement.textContent = data.message || 'Login failed';
+                console.error('Login failed:', data.message);
+            }
+        } catch (error) {
+            errorElement.textContent = 'Server error. Please try again.';
+            console.error('Login error:', error);
+        }
+    });
+}
 
 // Show Login Section
 function showLogin() {
@@ -20,40 +66,20 @@ function showLogin() {
 
 // Show Dashboard Section
 function showDashboard() {
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('dashboardSection').style.display = 'flex';
-    document.getElementById('dashboardSection').classList.add('active');
+    console.log('Showing dashboard...');
+    const loginSection = document.getElementById('loginSection');
+    const dashboardSection = document.getElementById('dashboardSection');
+    
+    if (loginSection) loginSection.style.display = 'none';
+    if (dashboardSection) {
+        dashboardSection.style.display = 'flex';
+        dashboardSection.classList.add('active');
+    }
+    
+    console.log('Dashboard section display:', dashboardSection ? dashboardSection.style.display : 'not found');
+    
     loadDashboardStats();
 }
-
-// Admin Login
-document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const username = document.getElementById('adminUsername').value;
-    const password = document.getElementById('adminPassword').value;
-    const errorElement = document.getElementById('loginError');
-
-    try {
-        const response = await fetch(`${API_BASE}/auth/admin/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            authToken = data.token;
-            localStorage.setItem('adminToken', authToken);
-            showDashboard();
-        } else {
-            errorElement.textContent = data.message || 'Login failed';
-        }
-    } catch (error) {
-        errorElement.textContent = 'Server error. Please try again.';
-    }
-});
 
 // Logout
 document.getElementById('logoutBtn').addEventListener('click', (e) => {
@@ -68,21 +94,16 @@ document.querySelectorAll('.nav-link[data-section]').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
         
-        // Remove active class from all links
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
 
-        // Hide all sections
         document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
 
-        // Show selected section
         const sectionId = link.getAttribute('data-section');
         document.getElementById(sectionId).classList.add('active');
 
-        // Update page title
         document.getElementById('pageTitle').textContent = link.querySelector('span').textContent;
 
-        // Load section data
         if (sectionId === 'dashboard') loadDashboardStats();
         if (sectionId === 'engineers') loadEngineers();
         if (sectionId === 'attendance') loadAttendance();
@@ -93,34 +114,48 @@ document.querySelectorAll('.nav-link[data-section]').forEach(link => {
 // Load Dashboard Stats
 async function loadDashboardStats() {
     try {
+        console.log('Loading dashboard stats...');
         const response = await fetch(`${API_BASE}/admin/dashboard-stats`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
 
         const data = await response.json();
+        console.log('Dashboard stats response:', data);
 
         if (data.success) {
-            document.getElementById('totalEngineers').textContent = data.stats.totalEngineers;
-            document.getElementById('presentToday').textContent = data.stats.presentToday;
-            document.getElementById('workingNow').textContent = data.stats.workingNow;
-            document.getElementById('absentToday').textContent = data.stats.absentToday;
+            const totalEngineersEl = document.getElementById('totalEngineers');
+            const presentTodayEl = document.getElementById('presentToday');
+            const workingNowEl = document.getElementById('workingNow');
+            const absentTodayEl = document.getElementById('absentToday');
+            
+            if (totalEngineersEl) totalEngineersEl.textContent = data.stats.totalEngineers || 0;
+            if (presentTodayEl) presentTodayEl.textContent = data.stats.presentToday || 0;
+            if (workingNowEl) workingNowEl.textContent = data.stats.workingNow || 0;
+            if (absentTodayEl) absentTodayEl.textContent = data.stats.absentToday || 0;
 
-            // Load today's attendance table
             const tbody = document.getElementById('todayAttendanceTable');
-            tbody.innerHTML = '';
+            if (tbody) {
+                tbody.innerHTML = '';
 
-            data.todayAttendance.forEach(record => {
-                const row = `
-                    <tr>
-                        <td>${record.engineerName}</td>
-                        <td>${record.inTime || '-'}</td>
-                        <td>${record.outTime || '-'}</td>
-                        <td><span class="status-badge ${record.status}">${record.status}</span></td>
-                        <td>${record.workingHours || '-'}</td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
+                if (data.todayAttendance && data.todayAttendance.length > 0) {
+                    data.todayAttendance.forEach(record => {
+                        const row = `
+                            <tr>
+                                <td>${record.engineerName}</td>
+                                <td>${record.inTime || '-'}</td>
+                                <td>${record.outTime || '-'}</td>
+                                <td><span class="status-badge ${record.status}">${record.status}</span></td>
+                                <td>${record.workingHours || '-'}</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No attendance records for today</td></tr>';
+                }
+            }
+        } else {
+            console.error('Dashboard stats failed:', data.message);
         }
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
@@ -148,10 +183,10 @@ async function loadEngineers() {
                         <td>${engineer.mobile}</td>
                         <td><span class="status-badge ${engineer.status}">${engineer.status}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-secondary" onclick="editEngineer('${engineer.username}')">
+                            <button class="btn btn-sm btn-secondary" data-action="edit" data-username="${engineer.username}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteEngineer('${engineer.username}')">
+                            <button class="btn btn-sm btn-danger" data-action="delete" data-username="${engineer.username}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -159,8 +194,21 @@ async function loadEngineers() {
                 `;
                 tbody.innerHTML += row;
             });
+            
+            document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const username = btn.getAttribute('data-username');
+                    editEngineer(username);
+                });
+            });
+            
+            document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const username = btn.getAttribute('data-username');
+                    deleteEngineer(username);
+                });
+            });
 
-            // Update engineer dropdowns
             updateEngineerDropdowns(data.engineers);
         }
     } catch (error) {
@@ -204,9 +252,13 @@ document.getElementById('engineerForm').addEventListener('submit', async (e) => 
         username: document.getElementById('engineerUsername').value,
         name: document.getElementById('engineerName').value,
         mobile: document.getElementById('engineerMobile').value,
-        password: document.getElementById('engineerPassword').value,
         status: document.getElementById('engineerStatus').value
     };
+
+    const password = document.getElementById('engineerPassword').value;
+    if (!editId || password !== '123456') {
+        formData.password = password;
+    }
 
     try {
         let url = `${API_BASE}/engineer`;
@@ -236,6 +288,7 @@ document.getElementById('engineerForm').addEventListener('submit', async (e) => 
             alert(data.message || 'Operation failed');
         }
     } catch (error) {
+        console.error('Error saving engineer:', error);
         alert('Server error. Please try again.');
     }
 });
@@ -259,9 +312,12 @@ async function editEngineer(username) {
             document.getElementById('engineerStatus').value = engineer.status;
             document.getElementById('engineerPassword').value = '123456';
             document.getElementById('engineerModal').classList.add('active');
+        } else {
+            alert(data.message || 'Failed to load engineer data');
         }
     } catch (error) {
-        alert('Error loading engineer data');
+        console.error('Error loading engineer data:', error);
+        alert('Error loading engineer data. Please try again.');
     }
 }
 
@@ -283,6 +339,7 @@ async function deleteEngineer(username) {
                 alert(data.message || 'Delete failed');
             }
         } catch (error) {
+            console.error('Error deleting engineer:', error);
             alert('Server error. Please try again.');
         }
     }
@@ -314,7 +371,7 @@ async function loadAttendance() {
                 const row = `
                     <tr>
                         <td>${record.date}</td>
-                        <td>${record.engineerName}</td>
+                        <td>${record.engineerName || record.engineerId}</td>
                         <td>${record.inTime || '-'}</td>
                         <td>${record.outTime || '-'}</td>
                         <td><span class="status-badge ${record.status}">${record.status}</span></td>
@@ -397,7 +454,6 @@ async function loadLiveTracking() {
                 return;
             }
 
-            // Simple map placeholder (integrate Google Maps API for real implementation)
             mapContainer.innerHTML = `
                 <div style="text-align: center;">
                     <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
@@ -407,7 +463,6 @@ async function loadLiveTracking() {
                 </div>
             `;
 
-            // List engineers
             engineersList.innerHTML = '';
             data.engineers.forEach(engineer => {
                 const card = `
@@ -429,7 +484,48 @@ async function loadLiveTracking() {
 
 document.getElementById('refreshLocations').addEventListener('click', loadLiveTracking);
 
-// Export to Excel (Placeholder)
-document.getElementById('exportExcel').addEventListener('click', () => {
-    alert('Excel export feature. Implement with a library like SheetJS or generate CSV on server.');
+// Export to Excel/CSV
+document.getElementById('exportExcel').addEventListener('click', async () => {
+    try {
+        const tbody = document.getElementById('reportTable');
+        const rows = tbody.querySelectorAll('tr');
+        
+        if (rows.length === 0) {
+            alert('No data to export. Please generate a report first.');
+            return;
+        }
+
+        let csvContent = 'Date,Engineer Name,In Time,Out Time,Working Hours,Task Completed\n';
+        
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const rowData = Array.from(cells).map(cell => {
+                let text = cell.textContent.trim();
+                text = text.replace(/"/g, '""');
+                if (text.includes(',') || text.includes('"')) {
+                    text = `"${text}"`;
+                }
+                return text;
+            });
+            csvContent += rowData.join(',') + '\n';
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        const timestamp = new Date().toISOString().slice(0, 10);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `attendance_report_${timestamp}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        alert('CSV file downloaded successfully!');
+    } catch (error) {
+        console.error('Error exporting CSV:', error);
+        alert('Error exporting CSV. Please try again.');
+    }
 });

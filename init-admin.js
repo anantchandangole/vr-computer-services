@@ -7,10 +7,7 @@ const Engineer = require('./models/Engineer');
 async function initialize() {
     try {
         // Connect to MongoDB
-        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/vr-computer-services', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/vr-computer-services');
         console.log('✅ Connected to MongoDB');
 
         // Check if admin already exists

@@ -178,36 +178,52 @@ router.get('/live-locations', authenticate, adminOnly, async (req, res) => {
   }
 });
 
-// Get Attendance Report (Admin)
+// Get Attendance Report (Admin Only)
 router.get('/report', authenticate, adminOnly, async (req, res) => {
   try {
     const { startDate, endDate, engineerId } = req.query;
+    const query = {};
 
-    let query = {};
-    if (startDate && endDate) {
-      query.date = { $gte: startDate, $lte: endDate };
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) query.date.$gte = startDate;
+      if (endDate) query.date.$lte = endDate;
     }
-    if (engineerId) query.engineerId = engineerId;
 
-    const attendance = await Attendance.find(query).sort({ date: -1, engineerId: 1 });
-    
+    if (engineerId) {
+      query.engineerId = engineerId;
+    }
+
+    const attendance = await Attendance.find(query).sort({ date: -1 });
+
+    // Populate engineer names
+    const populatedAttendance = await Promise.all(attendance.map(async (record) => {
+      const engineer = await Engineer.findOne({ username: record.engineerId });
+      return {
+        ...record.toObject(),
+        engineerName: engineer ? engineer.name : 'Unknown'
+      };
+    }));
+
     // Calculate summary
-    const totalDays = attendance.length;
-    const totalHours = attendance.reduce((sum, a) => {
-      if (a.workingHours) {
-        const hours = parseInt(a.workingHours) || 0;
-        return sum + hours;
+    const totalDays = populatedAttendance.length;
+    const totalHours = populatedAttendance.reduce((sum, record) => {
+      if (record.workingHours) {
+        return sum + parseFloat(record.workingHours);
       }
       return sum;
     }, 0);
 
-    res.json({ 
-      success: true, 
-      attendance,
-      summary: { totalDays, totalHours }
+    res.json({
+      success: true,
+      attendance: populatedAttendance,
+      summary: {
+        totalDays,
+        totalHours: totalHours.toFixed(1)
+      }
     });
   } catch (error) {
-    console.error('Error fetching report:', error);
+    console.error('Error generating report:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
