@@ -144,6 +144,39 @@ body {
     font-weight: 500;
 }
 
+.back-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.back-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    transition: all 0.3s;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+}
+
+.back-link a:hover {
+    background-color: var(--light-color);
+    text-decoration: none;
+    transform: translateX(-5px);
+}
+
+.back-link a i {
+    transition: transform 0.3s;
+}
+
+.back-link a:hover i {
+    transform: translateX(-3px);
+}
+
 /* Dashboard Container */
 .dashboard-container {
     display: none;
