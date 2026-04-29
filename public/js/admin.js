@@ -238,6 +238,35 @@ document.getElementById('addEngineerBtn').addEventListener('click', () => {
     document.getElementById('engineerModal').classList.add('active');
 });
 
+// Reset Engineer Passwords Button
+document.getElementById('resetEngineerPasswordsBtn').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to reset all engineer passwords to "123456"? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/admin/reset-engineer-passwords`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ newPassword: '123456' })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`✅ ${data.message}\n\nAll engineers can now login with password: ${data.newPassword}`);
+        } else {
+            alert(data.message || 'Failed to reset passwords');
+        }
+    } catch (error) {
+        console.error('Error resetting passwords:', error);
+        alert('Server error. Please try again.');
+    }
+});
+
 // Close Modal
 document.querySelector('.close-modal').addEventListener('click', () => {
     document.getElementById('engineerModal').classList.remove('active');

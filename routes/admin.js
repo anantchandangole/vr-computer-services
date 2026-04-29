@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
 const Admin = require('../models/Admin');
 const Engineer = require('../models/Engineer');
+const bcrypt = require('bcryptjs');
 const Attendance = require('../models/Attendance');
 const { authenticate, adminOnly } = require('../middleware/auth');
 
@@ -89,6 +89,33 @@ router.put('/change-password', authenticate, adminOnly, async (req, res) => {
     res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {
     console.error('Change password error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Reset All Engineer Passwords (Admin Only)
+router.post('/reset-engineer-passwords', authenticate, adminOnly, async (req, res) => {
+  try {
+    const { newPassword = '123456' } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    const engineers = await Engineer.find();
+    let count = 0;
+
+    for (const engineer of engineers) {
+      engineer.password = hashedPassword;
+      await engineer.save();
+      count++;
+    }
+
+    res.json({
+      success: true,
+      message: `Reset passwords for ${count} engineers`,
+      count,
+      newPassword
+    });
+  } catch (error) {
+    console.error('Reset engineer passwords error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

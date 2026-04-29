@@ -292,6 +292,12 @@ body {
     color: var(--primary-color);
 }
 
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
 .filters {
     display: flex;
     gap: 1rem;
