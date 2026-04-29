@@ -172,12 +172,24 @@ async function loadTodayAttendance() {
 }
 
 // Get Location
-function getLocation(latInput, lngInput, addressInput) {
+function getLocation(latInput, lngInput, addressInput, statusElement = null) {
+    const btn = document.activeElement;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Location...';
+    }
+
+    if (statusElement) {
+        statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Acquiring GPS...';
+        statusElement.style.display = 'block';
+    }
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
+                const accuracy = position.coords.accuracy;
 
                 document.getElementById(latInput).value = lat;
                 document.getElementById(lngInput).value = lng;
@@ -192,32 +204,163 @@ function getLocation(latInput, lngInput, addressInput) {
                 } catch (error) {
                     document.getElementById(addressInput).value = `${lat}, ${lng}`;
                 }
+
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Get Current Location';
+                }
+
+                if (statusElement) {
+                    statusElement.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success);"></i> Location captured (Accuracy: ±${Math.round(accuracy)}m)`;
+                    setTimeout(() => {
+                        statusElement.style.display = 'none';
+                    }, 3000);
+                }
             },
             (error) => {
-                alert('Unable to get location. Please enable location services.');
+                let errorMessage = 'Unable to get location.';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'Location permission denied. Please enable location services.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'Location information unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'Location request timed out.';
+                        break;
+                }
+
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Get Current Location';
+                }
+
+                if (statusElement) {
+                    statusElement.innerHTML = `<i class="fas fa-exclamation-circle" style="color: var(--danger);"></i> ${errorMessage}`;
+                } else {
+                    alert(errorMessage);
+                }
                 console.error('Geolocation error:', error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
             }
         );
     } else {
-        alert('Geolocation is not supported by your browser.');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Get Current Location';
+        }
+        if (statusElement) {
+            statusElement.innerHTML = '<i class="fas fa-exclamation-circle" style="color: var(--danger);"></i> Geolocation not supported';
+        } else {
+            alert('Geolocation is not supported by your browser.');
+        }
     }
 }
 
 document.getElementById('getLocationBtn').addEventListener('click', () => {
-    getLocation('locationLat', 'locationLng', 'locationAddress');
+    const statusElement = document.getElementById('locationStatus');
+    getLocation('locationLat', 'locationLng', 'locationAddress', statusElement);
 });
 
 document.getElementById('updateLocationBtn').addEventListener('click', () => {
     getLocation('updateLocationLat', 'updateLocationLng', 'updateLocationAddress');
 });
 
-// Photo Preview
+// Camera Variables
+let videoStream = null;
+let capturedPhotoDataUrl = null;
+
+// Open Camera
+document.getElementById('openCameraBtn').addEventListener('click', async () => {
+    try {
+        const videoElement = document.getElementById('videoElement');
+        const cameraPreview = document.getElementById('cameraPreview');
+
+        // Request camera access
+        videoStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' },
+            audio: false
+        });
+
+        videoElement.srcObject = videoStream;
+        cameraPreview.style.display = 'block';
+        document.getElementById('openCameraBtn').style.display = 'none';
+    } catch (error) {
+        console.error('Camera error:', error);
+        if (error.name === 'NotAllowedError') {
+            alert('Camera permission denied. Please enable camera access.');
+        } else if (error.name === 'NotFoundError') {
+            alert('No camera found on this device.');
+        } else {
+            alert('Unable to access camera: ' + error.message);
+        }
+    }
+});
+
+// Capture Photo
+document.getElementById('captureBtn').addEventListener('click', () => {
+    const videoElement = document.getElementById('videoElement');
+    const canvasElement = document.getElementById('canvasElement');
+    const photoPreview = document.getElementById('photoPreview');
+    const cameraPreview = document.getElementById('cameraPreview');
+
+    // Set canvas dimensions to match video
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
+
+    // Draw video frame to canvas
+    const ctx = canvasElement.getContext('2d');
+    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+    // Convert to data URL
+    capturedPhotoDataUrl = canvasElement.toDataURL('image/jpeg', 0.8);
+
+    // Show preview
+    photoPreview.innerHTML = `<img src="${capturedPhotoDataUrl}" alt="Captured Photo">`;
+    document.getElementById('retakePhotoBtn').style.display = 'inline-block';
+
+    // Stop camera and hide preview
+    stopCamera();
+    cameraPreview.style.display = 'none';
+    document.getElementById('openCameraBtn').style.display = 'inline-block';
+});
+
+// Close Camera
+document.getElementById('closeCameraBtn').addEventListener('click', () => {
+    stopCamera();
+    document.getElementById('cameraPreview').style.display = 'none';
+    document.getElementById('openCameraBtn').style.display = 'inline-block';
+});
+
+// Stop Camera Function
+function stopCamera() {
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+    }
+}
+
+// Retake Photo
+document.getElementById('retakePhotoBtn').addEventListener('click', () => {
+    document.getElementById('photoPreview').innerHTML = '';
+    document.getElementById('retakePhotoBtn').style.display = 'none';
+    capturedPhotoDataUrl = null;
+});
+
+// Fallback: File input for devices that don't support camera API
 document.getElementById('photoInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
+            capturedPhotoDataUrl = e.target.result;
             document.getElementById('photoPreview').innerHTML = `<img src="${e.target.result}" alt="Photo">`;
+            document.getElementById('retakePhotoBtn').style.display = 'inline-block';
         };
         reader.readAsDataURL(file);
     }
@@ -234,15 +377,17 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
     };
 
     const remark = document.getElementById('clockInRemark').value;
-    const photoInput = document.getElementById('photoInput');
     let photoUrl = '';
 
-    if (photoInput.files.length > 0) {
-        // Upload photo
-        const formData = new FormData();
-        formData.append('photo', photoInput.files[0]);
-
+    // Use captured photo if available, otherwise try file upload
+    if (capturedPhotoDataUrl) {
+        // Convert data URL to blob and upload
         try {
+            const response = await fetch(capturedPhotoDataUrl);
+            const blob = await response.blob();
+            const formData = new FormData();
+            formData.append('photo', blob, 'clock-in-photo.jpg');
+
             const uploadResponse = await fetch(`${API_BASE}/engineer/upload-photo`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${authToken}` },
@@ -255,13 +400,36 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
             }
         } catch (error) {
             console.error('Photo upload error:', error);
+            alert('Failed to upload photo. Please try again.');
+            return;
+        }
+    } else {
+        const photoInput = document.getElementById('photoInput');
+        if (photoInput.files.length > 0) {
+            const formData = new FormData();
+            formData.append('photo', photoInput.files[0]);
+
+            try {
+                const uploadResponse = await fetch(`${API_BASE}/engineer/upload-photo`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    body: formData
+                });
+
+                const uploadData = await uploadResponse.json();
+                if (uploadData.success) {
+                    photoUrl = uploadData.photoUrl;
+                }
+            } catch (error) {
+                console.error('Photo upload error:', error);
+            }
         }
     }
 
     try {
         const response = await fetch(`${API_BASE}/attendance/clock-in`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
             },
@@ -274,6 +442,9 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
             alert('Clocked in successfully!');
             document.getElementById('clockInForm').reset();
             document.getElementById('photoPreview').innerHTML = '';
+            document.getElementById('retakePhotoBtn').style.display = 'none';
+            document.getElementById('locationStatus').innerHTML = '';
+            capturedPhotoDataUrl = null;
             loadTodayAttendance();
         } else {
             alert(data.message || 'Clock in failed');

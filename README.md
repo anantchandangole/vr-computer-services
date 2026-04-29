@@ -275,12 +275,13 @@ Currently uses a placeholder. To enable:
 ## 📞 Support
 
 For issues or questions:
-- Email: info@vrcomputerservices.com
-- Phone: +91 98765 43210
+- Email: anant.dvd1990@gmail.com
+- Phone: +91 7030868082
 
 ## 📄 License
 
 Copyright © 2026 VR Computer Services. All Rights Reserved.
+Copyright © Dev. by. Anant. All Rights Reserved.
 
 ## 🚀 Future Enhancements
 

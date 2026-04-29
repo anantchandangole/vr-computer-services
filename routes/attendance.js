@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Attendance = require('../models/Attendance');
+const Engineer = require('../models/Engineer');
 const { authenticate, adminOnly, engineerOnly } = require('../middleware/auth');
 
 // Clock IN
@@ -207,12 +208,19 @@ router.get('/report', authenticate, adminOnly, async (req, res) => {
 
     // Calculate summary
     const totalDays = populatedAttendance.length;
-    const totalHours = populatedAttendance.reduce((sum, record) => {
+    let totalHours = 0;
+
+    populatedAttendance.forEach(record => {
       if (record.workingHours) {
-        return sum + parseFloat(record.workingHours);
+        // Parse "5h 30m" format to decimal hours
+        const match = record.workingHours.match(/(\d+)h\s*(\d+)?m?/);
+        if (match) {
+          const hours = parseInt(match[1]) || 0;
+          const minutes = parseInt(match[2]) || 0;
+          totalHours += hours + (minutes / 60);
+        }
       }
-      return sum;
-    }, 0);
+    });
 
     res.json({
       success: true,

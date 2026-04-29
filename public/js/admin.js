@@ -417,6 +417,7 @@ document.getElementById('generateReport').addEventListener('click', async () => 
             tbody.innerHTML = '';
 
             data.attendance.forEach(record => {
+                const location = record.location ? (record.location.address || `${record.location.lat}, ${record.location.lng}`) : '-';
                 const row = `
                     <tr>
                         <td>${record.date}</td>
@@ -424,6 +425,7 @@ document.getElementById('generateReport').addEventListener('click', async () => 
                         <td>${record.inTime || '-'}</td>
                         <td>${record.outTime || '-'}</td>
                         <td>${record.workingHours || '-'}</td>
+                        <td>${location}</td>
                         <td>${record.taskCompleted || '-'}</td>
                     </tr>
                 `;
@@ -488,41 +490,49 @@ document.getElementById('refreshLocations').addEventListener('click', loadLiveTr
 document.getElementById('exportExcel').addEventListener('click', async () => {
     try {
         const tbody = document.getElementById('reportTable');
+        if (!tbody) {
+            alert('Report table not found. Please generate a report first.');
+            return;
+        }
+
         const rows = tbody.querySelectorAll('tr');
-        
+
         if (rows.length === 0) {
             alert('No data to export. Please generate a report first.');
             return;
         }
 
-        let csvContent = 'Date,Engineer Name,In Time,Out Time,Working Hours,Task Completed\n';
-        
+        let csvContent = 'Date,Engineer Name,In Time,Out Time,Working Hours,Location,Task Completed\n';
+
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
-            const rowData = Array.from(cells).map(cell => {
-                let text = cell.textContent.trim();
-                text = text.replace(/"/g, '""');
-                if (text.includes(',') || text.includes('"')) {
-                    text = `"${text}"`;
-                }
-                return text;
-            });
-            csvContent += rowData.join(',') + '\n';
+            if (cells.length > 0) {
+                const rowData = Array.from(cells).map(cell => {
+                    let text = cell.textContent.trim();
+                    text = text.replace(/"/g, '""');
+                    if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+                        text = `"${text}"`;
+                    }
+                    return text;
+                });
+                csvContent += rowData.join(',') + '\n';
+            }
         });
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
-        
+
         const timestamp = new Date().toISOString().slice(0, 10);
         link.setAttribute('href', url);
         link.setAttribute('download', `attendance_report_${timestamp}.csv`);
         link.style.visibility = 'hidden';
-        
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
+        URL.revokeObjectURL(url);
         alert('CSV file downloaded successfully!');
     } catch (error) {
         console.error('Error exporting CSV:', error);

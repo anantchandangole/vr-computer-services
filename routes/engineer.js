@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const Engineer = require('../models/Engineer');
 const { authenticate, adminOnly } = require('../middleware/auth');
@@ -87,7 +88,8 @@ router.post('/', authenticate, adminOnly, [
       return res.status(400).json({ success: false, message: 'Username already exists' });
     }
 
-    const engineer = new Engineer({ username, password, name, mobile });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const engineer = new Engineer({ username, password: hashedPassword, name, mobile });
     await engineer.save();
 
     res.status(201).json({
@@ -106,12 +108,12 @@ router.put('/:id', authenticate, adminOnly, async (req, res) => {
   try {
     const { name, mobile, status, photo, password } = req.body;
     const updateData = { name, mobile, status, photo };
-    
+
     // Only update password if provided
     if (password) {
-      updateData.password = password;
+      updateData.password = await bcrypt.hash(password, 10);
     }
-    
+
     const engineer = await Engineer.findOneAndUpdate(
       { username: req.params.id },
       updateData,

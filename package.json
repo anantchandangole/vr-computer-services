@@ -8,7 +8,12 @@
     "dev": "nodemon server.js",
     "init": "node init-admin.js"
   },
-  "keywords": ["bank", "amc", "engineer-tracking", "attendance"],
+  "keywords": [
+    "bank",
+    "amc",
+    "engineer-tracking",
+    "attendance"
+  ],
   "author": "VR Computer Services",
   "license": "ISC",
   "dependencies": {
@@ -25,5 +30,14 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anantchandangole/vr-computer-services.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/anantchandangole/vr-computer-services/issues"
+  },
+  "homepage": "https://github.com/anantchandangole/vr-computer-services#readme"
 }
