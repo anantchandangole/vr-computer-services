@@ -1,0 +1,68 @@
+[
+  {
+    "_id": "69f1ea956861f98f21865957",
+    "username": "vrcs01",
+    "password": "$2a$10$U9oM7Zl/eET8dUlOfhRKD.guatSLji9Us5RSkOZUdLm26c/aOLyUa",
+    "name": "Engineer 01",
+    "mobile": "1234567890",
+    "photo": "",
+    "status": "active",
+    "createdAt": "2026-04-29T11:25:09.256Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f1ea956861f98f2186595a",
+    "username": "vrcs02",
+    "password": "$2a$10$U9oM7Zl/eET8dUlOfhRKD.guatSLji9Us5RSkOZUdLm26c/aOLyUa",
+    "name": "Engineer 02",
+    "mobile": "1234567891",
+    "photo": "",
+    "status": "active",
+    "createdAt": "2026-04-29T11:25:09.258Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f1ea956861f98f2186595d",
+    "username": "vrcs03",
+    "password": "$2a$10$U9oM7Zl/eET8dUlOfhRKD.guatSLji9Us5RSkOZUdLm26c/aOLyUa",
+    "name": "Engineer 03",
+    "mobile": "1234567892",
+    "photo": "",
+    "status": "active",
+    "createdAt": "2026-04-29T11:25:09.260Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f1ea956861f98f21865960",
+    "username": "vrcs04",
+    "password": "$2a$10$U9oM7Zl/eET8dUlOfhRKD.guatSLji9Us5RSkOZUdLm26c/aOLyUa",
+    "name": "Engineer 04",
+    "mobile": "1234567893",
+    "photo": "",
+    "status": "active",
+    "createdAt": "2026-04-29T11:25:09.263Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f1ea956861f98f21865963",
+    "username": "vrcs05",
+    "password": "$2a$10$U9oM7Zl/eET8dUlOfhRKD.guatSLji9Us5RSkOZUdLm26c/aOLyUa",
+    "name": "Engineer 05",
+    "mobile": "1234567894",
+    "photo": "",
+    "status": "active",
+    "createdAt": "2026-04-29T11:25:09.265Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f1ea956861f98f21865966",
+    "username": "VRCS05",
+    "password": "$2a$10$U9oM7Zl/eET8dUlOfhRKD.guatSLji9Us5RSkOZUdLm26c/aOLyUa",
+    "name": "ANANTA G CHANDANGOLE",
+    "mobile": "9168636003",
+    "photo": "",
+    "status": "active",
+    "createdAt": "2026-04-29T11:25:09.266Z",
+    "__v": 0
+  }
+]
