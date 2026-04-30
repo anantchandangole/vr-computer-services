@@ -24,7 +24,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // Static Files
 app.use('/uploads', express.static(path.join(__dirname, 'imag')));
-app.use('/imag', express.static(path.join(__dirname, 'imag')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Database Connection

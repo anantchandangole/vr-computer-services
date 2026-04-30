@@ -10,7 +10,7 @@ exports.authenticate = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     if (decoded.role === 'admin') {
       const admin = await Admin.findById(decoded.id);

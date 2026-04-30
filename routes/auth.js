@@ -31,7 +31,7 @@ router.post('/admin/login', [
 
     const token = jwt.sign(
       { id: admin._id, role: 'admin' },
-      process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -76,7 +76,7 @@ router.post('/engineer/login', [
 
     const token = jwt.sign(
       { id: engineer._id, role: 'engineer' },
-      process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 

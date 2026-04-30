@@ -5,7 +5,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const Engineer = require('../models/Engineer');
-const { authenticate, adminOnly } = require('../middleware/auth');
+const { authenticate, adminOnly, engineerOnly } = require('../middleware/auth');
 
 // Configure Multer for Photo Upload
 const storage = multer.diskStorage({
@@ -146,7 +146,7 @@ router.delete('/:id', authenticate, adminOnly, async (req, res) => {
 });
 
 // Upload Photo
-router.post('/upload-photo', authenticate, upload.single('photo'), (req, res) => {
+router.post('/upload-photo', authenticate, engineerOnly, upload.single('photo'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });

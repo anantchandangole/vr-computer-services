@@ -8,7 +8,7 @@ const { authenticate, adminOnly, engineerOnly } = require('../middleware/auth');
 router.post('/clock-in', authenticate, engineerOnly, async (req, res) => {
   try {
     const { location, photo, remark } = req.body;
-    const engineerId = req.user.username;
+    const engineerId = req.user._id;
     const engineerName = req.user.name;
 
     const today = new Date().toISOString().split('T')[0];
@@ -47,7 +47,7 @@ router.post('/clock-in', authenticate, engineerOnly, async (req, res) => {
 router.post('/clock-out', authenticate, engineerOnly, async (req, res) => {
   try {
     const { taskCompleted, remark } = req.body;
-    const engineerId = req.user.username;
+    const engineerId = req.user._id;
 
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
@@ -88,7 +88,7 @@ router.post('/clock-out', authenticate, engineerOnly, async (req, res) => {
 router.put('/update-status', authenticate, engineerOnly, async (req, res) => {
   try {
     const { location, status, remark } = req.body;
-    const engineerId = req.user.username;
+    const engineerId = req.user._id;
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -112,7 +112,7 @@ router.put('/update-status', authenticate, engineerOnly, async (req, res) => {
 // Get Today's Attendance (Engineer)
 router.get('/my-today', authenticate, engineerOnly, async (req, res) => {
   try {
-    const engineerId = req.user.username;
+    const engineerId = req.user._id;
     const today = new Date().toISOString().split('T')[0];
 
     const attendance = await Attendance.findOne({ engineerId, date: today });
@@ -126,7 +126,7 @@ router.get('/my-today', authenticate, engineerOnly, async (req, res) => {
 // Get Engineer Attendance History (Engineer)
 router.get('/my-history', authenticate, engineerOnly, async (req, res) => {
   try {
-    const engineerId = req.user.username;
+    const engineerId = req.user._id;
     const { startDate, endDate } = req.query;
 
     let query = { engineerId };
