@@ -145,24 +145,6 @@ body {
     font-weight: 500;
 }
 
-.init-section {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e2e8f0;
-    text-align: center;
-}
-
-.init-section .btn {
-    width: 100%;
-    margin-bottom: 0.5rem;
-}
-
-.init-note {
-    font-size: 0.75rem;
-    color: #718096;
-    margin-top: 0.5rem;
-}
-
 .back-link {
     text-align: center;
     margin-top: 1.5rem;
