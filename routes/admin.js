@@ -6,37 +6,59 @@ const bcrypt = require('bcryptjs');
 const Attendance = require('../models/Attendance');
 const { authenticate, adminOnly } = require('../middleware/auth');
 
-// Initialize Admin (First Time Setup)
+// Initialize Admin (First Time Setup) - No authentication required
 router.post('/initialize', async (req, res) => {
   try {
     const existingAdmin = await Admin.findOne({ username: 'administrator' });
     if (existingAdmin) {
-      return res.status(400).json({ success: false, message: 'Admin already initialized' });
+      // Update admin password if already exists
+      const password = await bcrypt.hash('desk@123', 10);
+      existingAdmin.password = password;
+      await existingAdmin.save();
+    } else {
+      // Create new admin
+      const password = await bcrypt.hash('desk@123', 10);
+      const admin = new Admin({ username: 'administrator', password });
+      await admin.save();
     }
 
-    const password = await bcrypt.hash('desk@123', 10);
-    const admin = new Admin({ username: 'administrator', password });
-    await admin.save();
-
-    // Create sample engineers
+    // Create or update engineers
     const sampleEngineers = [];
-    for (let i = 1; i <= 5; i++) {
-      const username = `vrcs${String(i).padStart(2, '0')}`;
+    const engineerData = [
+      { username: 'vrcs01', name: 'Engineer 01', mobile: '1234567890' },
+      { username: 'vrcs02', name: 'Engineer 02', mobile: '1234567891' },
+      { username: 'vrcs03', name: 'Engineer 03', mobile: '1234567892' },
+      { username: 'vrcs04', name: 'Engineer 04', mobile: '1234567893' },
+      { username: 'vrcs05', name: 'Engineer 05', mobile: '1234567894' },
+      { username: 'VRCS05', name: 'Engineer 05 (Uppercase)', mobile: '1234567895' }
+    ];
+
+    for (const eng of engineerData) {
       const engineerPassword = await bcrypt.hash('123456', 10);
-      const engineer = new Engineer({
-        username,
-        password: engineerPassword,
-        name: `Engineer ${i}`,
-        mobile: `987654321${i}`
-      });
-      await engineer.save();
-      sampleEngineers.push({ username: engineer.username, name: engineer.name, password: '123456' });
+      const existingEngineer = await Engineer.findOne({ username: eng.username });
+      if (existingEngineer) {
+        existingEngineer.password = engineerPassword;
+        existingEngineer.name = eng.name;
+        existingEngineer.mobile = eng.mobile;
+        existingEngineer.status = 'active';
+        await existingEngineer.save();
+      } else {
+        const engineer = new Engineer({
+          username: eng.username,
+          password: engineerPassword,
+          name: eng.name,
+          mobile: eng.mobile,
+          status: 'active'
+        });
+        await engineer.save();
+      }
+      sampleEngineers.push({ username: eng.username, name: eng.name, password: '123456' });
     }
 
     res.json({ 
       success: true, 
-      message: 'Admin initialized successfully',
-      admin: { username: admin.username, password: 'desk@123' },
+      message: 'Database initialized successfully',
+      admin: { username: 'administrator', password: 'desk@123' },
       sampleEngineers
     });
   } catch (error) {
