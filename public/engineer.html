@@ -18,11 +18,11 @@
             </div>
             <form id="engineerLoginForm">
                 <div class="form-group">
-                    <label>Username</label>
+                    <label for="engineerUsername">Username</label>
                     <input type="text" id="engineerUsername" placeholder="Enter username (e.g., vrcs01)" required>
                 </div>
                 <div class="form-group">
-                    <label>Password</label>
+                    <label for="engineerPassword">Password</label>
                     <input type="password" id="engineerPassword" placeholder="Enter password" required>
                 </div>
                 <button type="submit" class="btn btn-primary">Login</button>
@@ -71,7 +71,7 @@
                 </div>
                 <form id="clockInForm">
                     <div class="form-group">
-                        <label>Location</label>
+                        <label for="locationAddress">Location</label>
                         <button type="button" class="btn btn-secondary" id="getLocationBtn">
                             <i class="fas fa-map-marker-alt"></i> Get Current Location
                         </button>
@@ -81,7 +81,7 @@
                         <div id="locationStatus" class="location-status"></div>
                     </div>
                     <div class="form-group">
-                        <label>Photo</label>
+                        <label for="photoInput">Photo</label>
                         <div class="camera-container">
                             <button type="button" class="btn btn-secondary" id="openCameraBtn">
                                 <i class="fas fa-camera"></i> Open Camera
@@ -104,7 +104,7 @@
                         </button>
                     </div>
                     <div class="form-group">
-                        <label>Remark</label>
+                        <label for="clockInRemark">Remark</label>
                         <textarea id="clockInRemark" placeholder="Today's work plan or location details"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary btn-large">
@@ -121,11 +121,11 @@
                 </div>
                 <form id="clockOutForm">
                     <div class="form-group">
-                        <label>Task Completed</label>
+                        <label for="taskCompleted">Task Completed</label>
                         <textarea id="taskCompleted" placeholder="Describe what you completed today"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Additional Remark</label>
+                        <label for="clockOutRemark">Additional Remark</label>
                         <textarea id="clockOutRemark" placeholder="Any additional notes"></textarea>
                     </div>
                     <button type="submit" class="btn btn-danger btn-large">
@@ -142,7 +142,7 @@
                 </div>
                 <form id="updateStatusForm">
                     <div class="form-group">
-                        <label>Current Status</label>
+                        <label for="currentStatus">Current Status</label>
                         <select id="currentStatus">
                             <option value="Working">Working</option>
                             <option value="Idle">Idle</option>
@@ -151,7 +151,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Update Location</label>
+                        <label for="updateLocationBtn">Update Location</label>
                         <button type="button" class="btn btn-secondary" id="updateLocationBtn">
                             <i class="fas fa-map-marker-alt"></i> Update Location
                         </button>
@@ -160,7 +160,7 @@
                         <input type="text" id="updateLocationAddress" placeholder="Current location" readonly>
                     </div>
                     <div class="form-group">
-                        <label>Remark</label>
+                        <label for="updateRemark">Remark</label>
                         <textarea id="updateRemark" placeholder="Current work status"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">
