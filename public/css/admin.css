@@ -565,31 +565,148 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
+    /* Login Page */
+    .login-box {
+        padding: 2rem;
+        margin: 1rem;
+        max-width: 100%;
+    }
+
+    .login-header i {
+        font-size: 2.5rem;
+    }
+
+    .login-header h2 {
+        font-size: 1.5rem;
+    }
+
+    /* Dashboard */
     .sidebar {
         width: 100%;
         height: auto;
         position: relative;
     }
 
+    .sidebar-header {
+        padding: 1rem;
+    }
+
     .main-content {
         margin-left: 0;
     }
 
+    .top-header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .header-title h2 {
+        font-size: 1.25rem;
+    }
+
+    .content-section {
+        padding: 1rem;
+    }
+
     .stats-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+
+    .stat-info h3 {
+        font-size: 1.5rem;
     }
 
     .section-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .section-header h3 {
+        font-size: 1.25rem;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+
+    .header-actions .btn {
+        flex: 1;
+        justify-content: center;
     }
 
     .filters {
         width: 100%;
+        flex-direction: column;
     }
 
     .filters input,
     .filters select {
-        flex: 1;
+        width: 100%;
+    }
+
+    /* Tables */
+    .data-table th,
+    .data-table td {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    /* Modal */
+    .modal-content {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    /* Map */
+    .map-container {
+        height: 300px;
+    }
+
+    /* Engineer cards */
+    .engineers-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-box {
+        padding: 1.5rem;
+    }
+
+    .login-header i {
+        font-size: 2rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    .btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .stat-icon {
+        margin-bottom: 0.5rem;
     }
 }
