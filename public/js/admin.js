@@ -58,33 +58,6 @@ if (loginForm) {
     });
 }
 
-// Initialize Database Button
-const initDatabaseBtn = document.getElementById('initDatabaseBtn');
-if (initDatabaseBtn) {
-    initDatabaseBtn.addEventListener('click', async () => {
-        if (!confirm('This will initialize/reset the database with default admin and engineer accounts. Continue?')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_BASE}/admin/initialize`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            const data = await response.json();
-            
-            if (data.success) {
-                alert('Database initialized successfully!\n\nAdmin: ' + data.admin.username + ' / ' + data.admin.password + '\nEngineers: ' + data.sampleEngineers.map(e => e.username).join(', ') + ' / 123456');
-            } else {
-                alert('Initialization failed: ' + data.message + (data.error ? '\n\nError: ' + data.error : ''));
-            }
-        } catch (error) {
-            alert('Error initializing database: ' + error.message);
-        }
-    });
-}
-
 // Show Login Section
 function showLogin() {
     document.getElementById('loginSection').style.display = 'flex';
