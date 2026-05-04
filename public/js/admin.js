@@ -60,7 +60,7 @@ if (loginForm) {
 
 // Show Login Section
 function showLogin() {
-    document.getElementById('loginSection').style.display = 'flex';
+    document.getElementById('loginSection').style.display = 'block';
     document.getElementById('dashboardSection').style.display = 'none';
 }
 

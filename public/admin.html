@@ -5,32 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - VR Computer Services</title>
     <link rel="stylesheet" href="css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
     <!-- Login Section -->
-    <div id="loginSection" class="login-container">
-        <div class="login-box">
-            <div class="login-header">
-                <i class="fas fa-user-shield"></i>
-                <h2>Admin Login</h2>
-                <p>VR Computer Services</p>
-            </div>
+    <div id="loginSection" class="auth-wrapper">
+        <div class="background-shape"></div>
+        <div class="secondary-shape"></div>
+        <div class="credentials-panel signin">
+            <h2 class="slide-element">Admin Login</h2>
             <form id="adminLoginForm">
-                <div class="form-group">
+                <div class="field-wrapper slide-element">
+                    <input type="text" id="adminUsername" required>
                     <label for="adminUsername">Username</label>
-                    <input type="text" id="adminUsername" placeholder="Enter username" required>
+                    <i class="fa-solid fa-user"></i>
                 </div>
-                <div class="form-group">
+
+                <div class="field-wrapper slide-element">
+                    <input type="password" id="adminPassword" required>
                     <label for="adminPassword">Password</label>
-                    <input type="password" id="adminPassword" placeholder="Enter password" required>
+                    <i class="fa-solid fa-lock"></i>
                 </div>
-                <button type="submit" class="btn btn-primary">Login</button>
-                <p id="loginError" class="error-message"></p>
+
+                <div class="field-wrapper slide-element">
+                    <button class="submit-button" type="submit">Login</button>
+                </div>
+
+                <p id="loginError" class="error-message slide-element"></p>
+
+                <div class="switch-link slide-element">
+                    <p><a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
+                </div>
             </form>
-            <p class="back-link">
-                <a href="/"><i class="fas fa-arrow-left"></i> Back to Home</a>
-            </p>
+        </div>
+
+        <div class="welcome-section signin">
+            <h2 class="slide-element">WELCOME BACK!</h2>
+            <p class="slide-element">VR Computer Services</p>
         </div>
     </div>
 
