@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - VR Computer Services</title>
+    <title>Login - VR Computer Services</title>
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
@@ -14,6 +14,8 @@
     <div id="loginSection" class="auth-wrapper">
         <div class="background-shape"></div>
         <div class="secondary-shape"></div>
+        
+        <!-- Admin Login Panel -->
         <div class="credentials-panel signin">
             <h2 class="slide-element">Admin Login</h2>
             <form id="adminLoginForm">
@@ -33,16 +35,49 @@
                     <button class="submit-button" type="submit">Login</button>
                 </div>
 
-                <p id="loginError" class="error-message slide-element"></p>
+                <p id="adminLoginError" class="error-message slide-element"></p>
 
                 <div class="switch-link slide-element">
-                    <p><a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
+                    <p>Engineer? <a href="#" class="engineer-trigger">Login here</a></p>
                 </div>
             </form>
         </div>
 
         <div class="welcome-section signin">
-            <h2 class="slide-element">WELCOME BACK!</h2>
+            <h2 class="slide-element">ADMIN PANEL</h2>
+            <p class="slide-element">VR Computer Services</p>
+        </div>
+
+        <!-- Engineer Login Panel -->
+        <div class="credentials-panel signup">
+            <h2 class="slide-element">Engineer Login</h2>
+            <form id="engineerLoginForm">
+                <div class="field-wrapper slide-element">
+                    <input type="text" id="engineerUsername" required>
+                    <label for="engineerUsername">Username</label>
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <input type="password" id="engineerPassword" required>
+                    <label for="engineerPassword">Password</label>
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <button class="submit-button" type="submit">Login</button>
+                </div>
+
+                <p id="engineerLoginError" class="error-message slide-element"></p>
+
+                <div class="switch-link slide-element">
+                    <p>Admin? <a href="#" class="admin-trigger">Login here</a></p>
+                </div>
+            </form>
+        </div>
+
+        <div class="welcome-section signup">
+            <h2 class="slide-element">ENGINEER PORTAL</h2>
             <p class="slide-element">VR Computer Services</p>
         </div>
     </div>

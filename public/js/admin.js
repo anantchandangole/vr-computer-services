@@ -2,6 +2,7 @@
 const API_BASE = '/api';
 
 let authToken = localStorage.getItem('adminToken');
+let engineerToken = localStorage.getItem('engineerToken');
 
 // Check authentication on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,8 +13,29 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (authToken) {
         showDashboard();
+    } else if (engineerToken) {
+        window.location.href = '/engineer';
     } else {
         showLogin();
+    }
+
+    // Toggle between admin and engineer login
+    const authWrapper = document.querySelector('.auth-wrapper');
+    const engineerTrigger = document.querySelector('.engineer-trigger');
+    const adminTrigger = document.querySelector('.admin-trigger');
+
+    if (engineerTrigger) {
+        engineerTrigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            authWrapper.classList.add('toggled');
+        });
+    }
+
+    if (adminTrigger) {
+        adminTrigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            authWrapper.classList.remove('toggled');
+        });
     }
 });
 
@@ -26,7 +48,7 @@ if (loginForm) {
         
         const username = document.getElementById('adminUsername').value;
         const password = document.getElementById('adminPassword').value;
-        const errorElement = document.getElementById('loginError');
+        const errorElement = document.getElementById('adminLoginError');
 
         console.log('Username:', username);
         console.log('Password length:', password.length);
@@ -47,6 +69,48 @@ if (loginForm) {
                 authToken = data.token;
                 localStorage.setItem('adminToken', authToken);
                 showDashboard();
+            } else {
+                errorElement.textContent = data.message || 'Login failed';
+                console.error('Login failed:', data.message);
+            }
+        } catch (error) {
+            errorElement.textContent = 'Server error. Please try again.';
+            console.error('Login error:', error);
+        }
+    });
+}
+
+// Engineer Login Event Listener
+const engineerLoginForm = document.getElementById('engineerLoginForm');
+if (engineerLoginForm) {
+    engineerLoginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        console.log('Engineer login form submitted');
+        
+        const username = document.getElementById('engineerUsername').value;
+        const password = document.getElementById('engineerPassword').value;
+        const errorElement = document.getElementById('engineerLoginError');
+
+        console.log('Username:', username);
+        console.log('Password length:', password.length);
+
+        try {
+            console.log('Sending login request to:', `${API_BASE}/auth/engineer/login`);
+            const response = await fetch(`${API_BASE}/auth/engineer/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            console.log('Response status:', response.status);
+            const data = await response.json();
+            console.log('Response data:', data);
+
+            if (data.success) {
+                engineerToken = data.token;
+                localStorage.setItem('engineerToken', engineerToken);
+                localStorage.setItem('engineerUser', JSON.stringify(data.user));
+                window.location.href = '/engineer';
             } else {
                 errorElement.textContent = data.message || 'Login failed';
                 console.error('Login failed:', data.message);
