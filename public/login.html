@@ -4,160 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - VR Computer Services</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            background: linear-gradient(135deg, #f5f7fb 0%, #e4e8f0 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            max-width: 450px;
-            width: 90%;
-            text-align: center;
-        }
-
-        .logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 28px;
-            font-weight: 700;
-            color: #0d6efd;
-            margin-bottom: 30px;
-        }
-
-        .login-options {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .login-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            padding: 15px 25px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            color: white;
-        }
-
-        .login-btn i {
-            font-size: 20px;
-        }
-
-        .admin-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .admin-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .engineer-btn {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        }
-
-        .engineer-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(17, 153, 142, 0.4);
-        }
-
-        .back-link {
-            margin-top: 25px;
-            color: #666;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .back-link:hover {
-            color: #0d6efd;
-        }
-
-        .info-text {
-            color: #666;
-            margin-bottom: 25px;
-            font-size: 14px;
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .login-container {
-                padding: 30px 20px;
-                width: 95%;
-            }
-
-            .logo {
-                font-size: 24px;
-            }
-
-            .login-btn {
-                padding: 12px 20px;
-                font-size: 14px;
-            }
-
-            .login-btn i {
-                font-size: 18px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 25px 15px;
-            }
-
-            .logo {
-                font-size: 20px;
-            }
-
-            .login-btn {
-                padding: 10px 15px;
-                font-size: 13px;
-            }
-
-            .info-text {
-                font-size: 12px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-    <div class="login-container">
-        <div class="logo">
-            <i class="fa-solid fa-computer"></i> VR Computer Services
-        </div>
-        <p class="info-text">Select your portal to login</p>
+    <!-- Login Section -->
+    <div id="loginSection" class="auth-wrapper">
+        <div class="background-shape"></div>
+        <div class="secondary-shape"></div>
         
-        <div class="login-options">
-            <a href="/admin" class="login-btn admin-btn">
-                <i class="fa-solid fa-user-shield"></i>
-                Admin Portal
-            </a>
-            <a href="/engineer" class="login-btn engineer-btn">
-                <i class="fa-solid fa-user-gear"></i>
-                Engineer Portal
-            </a>
+        <!-- Admin Login Panel -->
+        <div class="credentials-panel signin">
+            <h2 class="slide-element">Admin Login</h2>
+            <form id="adminLoginForm">
+                <div class="field-wrapper slide-element">
+                    <input type="text" id="adminUsername" required>
+                    <label for="adminUsername">Username</label>
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <input type="password" id="adminPassword" required>
+                    <label for="adminPassword">Password</label>
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <button class="submit-button" type="submit">Login</button>
+                </div>
+
+                <p id="adminLoginError" class="error-message slide-element"></p>
+
+                <div class="switch-link slide-element">
+                    <p>Engineer? <a href="#" class="engineer-trigger">Login here</a></p>
+                </div>
+            </form>
         </div>
 
-        <a href="index.html" class="back-link">
-            <i class="fa-solid fa-arrow-left"></i> Back to Home
-        </a>
+        <div class="welcome-section signin">
+            <h2 class="slide-element">ADMIN PANEL</h2>
+            <p class="slide-element">VR Computer Services</p>
+        </div>
+
+        <!-- Engineer Login Panel -->
+        <div class="credentials-panel signup">
+            <h2 class="slide-element">Engineer Login</h2>
+            <form id="engineerLoginForm">
+                <div class="field-wrapper slide-element">
+                    <input type="text" id="engineerUsername" required>
+                    <label for="engineerUsername">Username</label>
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <input type="password" id="engineerPassword" required>
+                    <label for="engineerPassword">Password</label>
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <button class="submit-button" type="submit">Login</button>
+                </div>
+
+                <p id="engineerLoginError" class="error-message slide-element"></p>
+
+                <div class="switch-link slide-element">
+                    <p>Admin? <a href="#" class="admin-trigger">Login here</a></p>
+                </div>
+            </form>
+        </div>
+
+        <div class="welcome-section signup">
+            <h2 class="slide-element">ENGINEER PORTAL</h2>
+            <p class="slide-element">VR Computer Services</p>
+        </div>
     </div>
+
+    <script src="js/admin.js"></script>
 </body>
 </html>
