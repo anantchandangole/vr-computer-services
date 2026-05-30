@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: vr-computer-services
+    env: node
+    repo: https://github.com/anantchandangole/vr-computer-services.git
+    branch: main
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    plan: free
