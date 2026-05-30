@@ -25,7 +25,7 @@ const attendanceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Working', 'Idle', 'Completed'],
+    enum: ['Working', 'Idle', 'Completed', 'Closed', 'Pending'],
     default: 'Idle'
   },
   remark: {

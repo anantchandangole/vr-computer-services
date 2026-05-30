@@ -4,13 +4,70 @@ const API_BASE = '/api';
 let authToken = localStorage.getItem('adminToken');
 let engineerToken = localStorage.getItem('engineerToken');
 
+// Theme Management
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('adminTheme') || 'dark';
+    setTheme(savedTheme);
+}
+
+function setTheme(theme) {
+    const html = document.documentElement;
+    if (theme === 'light') {
+        html.classList.add('light-theme');
+    } else {
+        html.classList.remove('light-theme');
+    }
+    localStorage.setItem('adminTheme', theme);
+    updateThemeIcon(theme);
+}
+
+function toggleTheme() {
+    const currentTheme = localStorage.getItem('adminTheme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+}
+
+function updateThemeIcon(theme) {
+    const icons = theme === 'light' 
+        ? '<i class="fas fa-sun"></i>' 
+        : '<i class="fas fa-moon"></i>';
+    
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const themeToggleGlobal = document.getElementById('themeToggleGlobal');
+    
+    if (themeToggleBtn) themeToggleBtn.innerHTML = icons;
+    if (themeToggleGlobal) themeToggleGlobal.innerHTML = icons;
+}
+
+// Handle browser back/forward navigation
+window.addEventListener('popstate', () => {
+    console.log('Browser navigation detected');
+    if (authToken) {
+        localStorage.removeItem('adminToken');
+        authToken = null;
+        showLogin();
+    }
+});
+
+// Prevent browser caching of authenticated pages
+window.addEventListener('beforeunload', () => {
+    if (authToken) {
+        return '';
+    }
+});
+
 // Check authentication on page load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Admin.js loaded');
-    
+
+    // Initialize theme
+    initializeTheme();
+
     const loginForm = document.getElementById('adminLoginForm');
-    console.log('Login form found:', loginForm ? 'Yes' : 'No');
-    
+    const engineerLoginForm = document.getElementById('engineerLoginForm');
+    console.log('Admin login form found:', loginForm ? 'Yes' : 'No');
+    console.log('Engineer login form found:', engineerLoginForm ? 'Yes' : 'No');
+
     if (authToken) {
         showDashboard();
     } else if (engineerToken) {
@@ -23,6 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const authWrapper = document.querySelector('.auth-wrapper');
     const engineerTrigger = document.querySelector('.engineer-trigger');
     const adminTrigger = document.querySelector('.admin-trigger');
+
+    console.log('Auth wrapper found:', authWrapper ? 'Yes' : 'No');
+    console.log('Engineer trigger found:', engineerTrigger ? 'Yes' : 'No');
+    console.log('Admin trigger found:', adminTrigger ? 'Yes' : 'No');
 
     if (engineerTrigger) {
         engineerTrigger.addEventListener('click', (e) => {
@@ -37,6 +98,64 @@ document.addEventListener('DOMContentLoaded', () => {
             authWrapper.classList.remove('toggled');
         });
     }
+
+    // Mobile menu toggle for dashboard
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    if (mobileMenuToggle && sidebar) {
+        mobileMenuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.toggle('active');
+            }
+            document.body.classList.toggle('sidebar-open');
+        });
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            document.body.classList.remove('sidebar-open');
+        });
+    }
+
+    // Close sidebar when clicking nav links on mobile
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+                if (sidebarOverlay) {
+                    sidebarOverlay.classList.remove('active');
+                }
+                document.body.classList.remove('sidebar-open');
+            }
+        });
+    });
+
+    // Auto-close sidebar on resize past mobile breakpoint
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && sidebar) {
+            sidebar.classList.remove('active');
+            if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+            document.body.classList.remove('sidebar-open');
+        }
+    });
+
+    // Theme toggle button (dashboard header)
+    const themeToggleBtn = document.getElementById('themeToggle');
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', toggleTheme);
+    }
+
+    // Theme toggle button (floating, login page)
+    const themeToggleGlobal = document.getElementById('themeToggleGlobal');
+    if (themeToggleGlobal) {
+        themeToggleGlobal.addEventListener('click', toggleTheme);
+    }
 });
 
 // Admin Login Event Listener
@@ -45,10 +164,24 @@ if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         console.log('Admin login form submitted');
-        
+
         const username = document.getElementById('adminUsername').value;
         const password = document.getElementById('adminPassword').value;
         const errorElement = document.getElementById('adminLoginError');
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+        // Clear previous error
+        errorElement.textContent = '';
+
+        // Validate inputs
+        if (!username || !password) {
+            errorElement.textContent = 'Please enter both username and password';
+            return;
+        }
+
+        // Disable button and show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
 
         console.log('Username:', username);
         console.log('Password length:', password.length);
@@ -74,8 +207,16 @@ if (loginForm) {
                 console.error('Login failed:', data.message);
             }
         } catch (error) {
-            errorElement.textContent = 'Server error. Please try again.';
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorElement.textContent = 'Network error. Please check your internet connection.';
+            } else {
+                errorElement.textContent = 'Server error. Please try again.';
+            }
             console.error('Login error:', error);
+        } finally {
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Login';
         }
     });
 }
@@ -110,6 +251,7 @@ if (engineerLoginForm) {
                 engineerToken = data.token;
                 localStorage.setItem('engineerToken', engineerToken);
                 localStorage.setItem('engineerUser', JSON.stringify(data.user));
+                console.log('Redirecting to /engineer...');
                 window.location.href = '/engineer';
             } else {
                 errorElement.textContent = data.message || 'Login failed';
@@ -120,6 +262,8 @@ if (engineerLoginForm) {
             console.error('Login error:', error);
         }
     });
+} else {
+    console.log('Engineer login form not found');
 }
 
 // Show Login Section

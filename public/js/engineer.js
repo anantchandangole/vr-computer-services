@@ -3,11 +3,94 @@ const API_BASE = '/api';
 
 let authToken = localStorage.getItem('engineerToken');
 let currentUser = null;
+let map = null;
+let marker = null;
+
+// Theme Management
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('engineerTheme') || 'dark';
+    setTheme(savedTheme);
+}
+
+function setTheme(theme) {
+    const html = document.documentElement;
+    if (theme === 'light') {
+        html.classList.add('light-theme');
+    } else {
+        html.classList.remove('light-theme');
+    }
+    localStorage.setItem('engineerTheme', theme);
+    updateThemeIcon(theme);
+}
+
+function toggleTheme() {
+    const currentTheme = localStorage.getItem('engineerTheme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+}
+
+function updateThemeIcon(theme) {
+    const icons = theme === 'light' 
+        ? '<i class="fas fa-sun"></i>' 
+        : '<i class="fas fa-moon"></i>';
+    
+    const themeToggleDashboard = document.getElementById('themeToggleEngineer');
+    const themeToggleGlobal = document.getElementById('themeToggleGlobalEngineer');
+    
+    if (themeToggleDashboard) themeToggleDashboard.innerHTML = icons;
+    if (themeToggleGlobal) themeToggleGlobal.innerHTML = icons;
+}
+
+// Show map with location using Leaflet (OpenStreetMap)
+function showMap(lat, lng) {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+    
+    mapContainer.style.display = 'block';
+    
+    try {
+        const location = [parseFloat(lat), parseFloat(lng)];
+        
+        if (!map) {
+            map = L.map('map').setView(location, 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        } else {
+            map.setView(location, 15);
+        }
+        
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        
+        marker = L.marker(location).addTo(map)
+            .bindPopup('Current Location')
+            .openPopup();
+    } catch (error) {
+        console.error('Map error:', error);
+        mapContainer.innerHTML = '<p style="text-align: center; padding: 20px;">Unable to load map. Please check your internet connection.</p>';
+    }
+}
 
 // Check authentication on page load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Engineer.js loaded');
     
+    // Initialize theme
+    initializeTheme();
+
+    // Theme toggle buttons
+    const themeToggleDashboard = document.getElementById('themeToggleEngineer');
+    if (themeToggleDashboard) {
+        themeToggleDashboard.addEventListener('click', toggleTheme);
+    }
+    const themeToggleGlobal = document.getElementById('themeToggleGlobalEngineer');
+    if (themeToggleGlobal) {
+        themeToggleGlobal.addEventListener('click', toggleTheme);
+    }
+
     const loginForm = document.getElementById('engineerLoginForm');
     console.log('Login form found:', loginForm ? 'Yes' : 'No');
     
@@ -33,6 +116,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateElement = document.getElementById('currentDate');
     if (dateElement) {
         dateElement.textContent = today;
+    }
+});
+
+// Handle browser back/forward navigation
+window.addEventListener('popstate', () => {
+    console.log('Browser navigation detected');
+    // When back button is pressed, logout and show login
+    if (authToken) {
+        localStorage.removeItem('engineerToken');
+        localStorage.removeItem('engineerUser');
+        authToken = null;
+        currentUser = null;
+        showLogin();
+    }
+});
+
+// Prevent browser caching of authenticated pages
+window.addEventListener('beforeunload', () => {
+    // This will force the browser to not cache the page
+    if (authToken) {
+        return '';
     }
 });
 
@@ -158,6 +262,14 @@ async function loadTodayAttendance() {
                 document.getElementById('clockOutSection').style.display = 'none';
                 document.getElementById('updateStatusSection').style.display = 'none';
                 statusContent.innerHTML += '<p style="margin-top: 1rem; color: var(--success); font-weight: 600;">✓ Completed for today</p>';
+                
+                // Disable clock-in form completely
+                document.getElementById('clockInForm').disabled = true;
+                const clockInBtn = document.getElementById('clockInForm').querySelector('button[type="submit"]');
+                if (clockInBtn) {
+                    clockInBtn.disabled = true;
+                    clockInBtn.innerHTML = '<i class="fas fa-check"></i> Already Completed';
+                }
             }
         } else {
             // No attendance today - show clock in
@@ -165,6 +277,14 @@ async function loadTodayAttendance() {
             document.getElementById('clockInSection').style.display = 'block';
             document.getElementById('clockOutSection').style.display = 'none';
             document.getElementById('updateStatusSection').style.display = 'none';
+            
+            // Enable clock-in form
+            document.getElementById('clockInForm').disabled = false;
+            const clockInBtn = document.getElementById('clockInForm').querySelector('button[type="submit"]');
+            if (clockInBtn) {
+                clockInBtn.disabled = false;
+                clockInBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Clock In';
+            }
         }
     } catch (error) {
         console.error('Error loading attendance:', error);
@@ -216,6 +336,9 @@ function getLocation(latInput, lngInput, addressInput, statusElement = null) {
                         statusElement.style.display = 'none';
                     }, 3000);
                 }
+                
+                // Show map with location
+                showMap(lat, lng);
             },
             (error) => {
                 let errorMessage = 'Unable to get location.';
@@ -274,31 +397,109 @@ document.getElementById('updateLocationBtn').addEventListener('click', () => {
 // Camera Variables
 let videoStream = null;
 let capturedPhotoDataUrl = null;
+let currentFacingMode = 'environment'; // Default to back camera
+let availableCameras = [];
+
+// Check available cameras
+async function getAvailableCameras() {
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        availableCameras = devices.filter(device => device.kind === 'videoinput');
+        console.log('Available cameras:', availableCameras.length);
+        return availableCameras;
+    } catch (error) {
+        console.error('Error enumerating cameras:', error);
+        return [];
+    }
+}
 
 // Open Camera
 document.getElementById('openCameraBtn').addEventListener('click', async () => {
+    const cameraError = document.getElementById('cameraError');
+    cameraError.style.display = 'none';
+    
     try {
         const videoElement = document.getElementById('videoElement');
         const cameraPreview = document.getElementById('cameraPreview');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
 
-        // Request camera access
-        videoStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' },
+        // Get available cameras
+        const cameras = await getAvailableCameras();
+        
+        // Show/hide switch button based on camera count
+        if (cameras.length > 1) {
+            switchCameraBtn.style.display = 'inline-block';
+        } else {
+            switchCameraBtn.style.display = 'none';
+        }
+
+        // Request camera access with facing mode
+        const constraints = {
+            video: {
+                facingMode: currentFacingMode,
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
             audio: false
-        });
+        };
+
+        videoStream = await navigator.mediaDevices.getUserMedia(constraints);
 
         videoElement.srcObject = videoStream;
         cameraPreview.style.display = 'block';
         document.getElementById('openCameraBtn').style.display = 'none';
     } catch (error) {
         console.error('Camera error:', error);
-        if (error.name === 'NotAllowedError') {
-            alert('Camera permission denied. Please enable camera access.');
-        } else if (error.name === 'NotFoundError') {
-            alert('No camera found on this device.');
+        const cameraError = document.getElementById('cameraError');
+        cameraError.style.display = 'block';
+        
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            cameraError.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Camera permission denied. Please enable camera access in your browser settings.';
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+            cameraError.innerHTML = '<i class="fas fa-exclamation-triangle"></i> No camera found on this device. Please use the file upload option below.';
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+            cameraError.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Camera is already in use by another application.';
+        } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
+            cameraError.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Camera does not support the requested settings. Try using file upload.';
         } else {
-            alert('Unable to access camera: ' + error.message);
+            cameraError.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Unable to access camera: ${error.message}. Please use the file upload option below.`;
         }
+        
+        // Show file input as fallback
+        document.getElementById('photoInput').style.display = 'block';
+    }
+});
+
+// Switch Camera
+document.getElementById('switchCameraBtn').addEventListener('click', async () => {
+    // Stop current stream
+    stopCamera();
+    
+    // Toggle facing mode
+    currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+    
+    // Reopen camera with new facing mode
+    try {
+        const videoElement = document.getElementById('videoElement');
+        const constraints = {
+            video: {
+                facingMode: currentFacingMode,
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false
+        };
+
+        videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoElement.srcObject = videoStream;
+    } catch (error) {
+        console.error('Camera switch error:', error);
+        const cameraError = document.getElementById('cameraError');
+        cameraError.style.display = 'block';
+        cameraError.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Unable to switch camera: ${error.message}`;
+        
+        // Revert to previous mode
+        currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
     }
 });
 
@@ -370,6 +571,35 @@ document.getElementById('photoInput').addEventListener('change', function(e) {
 document.getElementById('clockInForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    // Check if already clocked in today before proceeding
+    try {
+        const response = await fetch(`${API_BASE}/attendance/my-today`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await response.json();
+        
+        if (data.success && data.attendance) {
+            const attendance = data.attendance;
+            if (attendance.inTime && !attendance.outTime) {
+                alert('You are already clocked in today. Please clock out first.');
+                return;
+            }
+            if (attendance.outTime) {
+                alert('You have already completed attendance for today. Cannot clock in again.');
+                return;
+            }
+        }
+    } catch (error) {
+        console.error('Error checking attendance:', error);
+        alert('Error checking attendance status. Please try again.');
+        return;
+    }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
     const location = {
         lat: document.getElementById('locationLat').value || null,
         lng: document.getElementById('locationLng').value || null,
@@ -401,6 +631,8 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
         } catch (error) {
             console.error('Photo upload error:', error);
             alert('Failed to upload photo. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
             return;
         }
     } else {
@@ -444,6 +676,7 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
             document.getElementById('photoPreview').innerHTML = '';
             document.getElementById('retakePhotoBtn').style.display = 'none';
             document.getElementById('locationStatus').innerHTML = '';
+            document.getElementById('map').style.display = 'none';
             capturedPhotoDataUrl = null;
             loadTodayAttendance();
         } else {
@@ -451,12 +684,20 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
         }
     } catch (error) {
         alert('Server error. Please try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
     }
 });
 
 // Clock Out
 document.getElementById('clockOutForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
     const taskCompleted = document.getElementById('taskCompleted').value;
     const remark = document.getElementById('clockOutRemark').value;
@@ -482,12 +723,20 @@ document.getElementById('clockOutForm').addEventListener('submit', async (e) => 
         }
     } catch (error) {
         alert('Server error. Please try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
     }
 });
 
 // Update Status
 document.getElementById('updateStatusForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
     const status = document.getElementById('currentStatus').value;
     const location = {
@@ -518,6 +767,9 @@ document.getElementById('updateStatusForm').addEventListener('submit', async (e)
         }
     } catch (error) {
         alert('Server error. Please try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
     }
 });
 

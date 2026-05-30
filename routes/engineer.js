@@ -146,19 +146,57 @@ router.delete('/:id', authenticate, adminOnly, async (req, res) => {
 });
 
 // Upload Photo
-router.post('/upload-photo', authenticate, engineerOnly, upload.single('photo'), (req, res) => {
+router.post('/upload-photo/:engineerId', authenticate, engineerOnly, upload.single('photo'), (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file uploaded' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No file uploaded' 
+      });
     }
-    res.json({
-      success: true,
-      message: 'Photo uploaded successfully',
-      photoUrl: `/uploads/${req.file.filename}`
+
+    // Verify that the engineer can only upload their own photo
+    if (req.user._id.toString() !== req.params.engineerId && req.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Unauthorized: Cannot upload photo for another engineer' 
+      });
+    }
+
+    const photoUrl = `/uploads/${req.file.filename}`;
+    
+    // Update engineer's photo in database
+    Engineer.findByIdAndUpdate(
+      req.params.engineerId,
+      { photo: photoUrl },
+      { new: true }
+    ).then(engineer => {
+      if (!engineer) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Engineer not found' 
+        });
+      }
+      res.json({
+        success: true,
+        message: 'Photo uploaded successfully',
+        photoUrl,
+        engineer: { username: engineer.username, photo: engineer.photo }
+      });
+    }).catch(err => {
+      console.error('Error updating engineer photo:', err);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to save photo' 
+      });
     });
   } catch (error) {
     console.error('Error uploading photo:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 });
 

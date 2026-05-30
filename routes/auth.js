@@ -6,106 +6,176 @@ const { body, validationResult } = require('express-validator');
 const Engineer = require('../models/Engineer');
 const Admin = require('../models/Admin');
 
-// Admin Login
+// ===== ADMIN LOGIN =====
 router.post('/admin/login', [
-  body('username').notEmpty().withMessage('Username is required'),
-  body('password').notEmpty().withMessage('Password is required')
+  body('username')
+    .trim()
+    .notEmpty()
+    .withMessage('Username is required')
+    .isLength({ min: 3, max: 50 })
+    .withMessage('Username must be between 3 and 50 characters')
+    .matches(/^[a-zA-Z0-9_-]+$/)
+    .withMessage('Username contains invalid characters'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters')
 ], async (req, res) => {
   try {
+    // Validate inputs
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Validation error',
+        errors: errors.array() 
+      });
     }
 
     const { username, password } = req.body;
 
-    console.log('Admin login attempt:', username);
-    console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
-
-    const admin = await Admin.findOne({ username });
+    // Find admin
+    const admin = await Admin.findOne({ username }).select('+password');
     if (!admin) {
-      console.log('Admin not found:', username);
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      // Don't reveal if user exists or not (security best practice)
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid username or password' 
+      });
     }
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
-      console.log('Password mismatch for admin:', username);
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    // Compare password
+    const isPasswordValid = await bcrypt.compare(password, admin.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid username or password' 
+      });
     }
 
+    // Check JWT_SECRET
     if (!process.env.JWT_SECRET) {
-      console.error('JWT_SECRET is not set in environment variables');
-      return res.status(500).json({ success: false, message: 'Server configuration error: JWT_SECRET not set' });
+      console.error('❌ JWT_SECRET not configured');
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Server configuration error' 
+      });
     }
 
+    // Generate JWT token
     const token = jwt.sign(
-      { id: admin._id, role: 'admin' },
+      { 
+        id: admin._id, 
+        role: 'admin',
+        username: admin.username 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    console.log('Admin login successful:', username);
+    console.log(`✅ Admin login successful: ${username}`);
+
     res.json({
       success: true,
-      message: 'Admin login successful',
+      message: 'Login successful',
       token,
-      user: { username: admin.username, role: 'admin' }
+      user: { 
+        username: admin.username, 
+        role: 'admin' 
+      }
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    console.error('❌ Admin login error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 });
 
-// Engineer Login
+// ===== ENGINEER LOGIN =====
 router.post('/engineer/login', [
-  body('username').notEmpty().withMessage('Username is required'),
-  body('password').notEmpty().withMessage('Password is required')
+  body('username')
+    .trim()
+    .notEmpty()
+    .withMessage('Username is required')
+    .isLength({ min: 3, max: 50 })
+    .withMessage('Username must be between 3 and 50 characters')
+    .matches(/^[a-zA-Z0-9_-]+$/)
+    .withMessage('Username contains invalid characters'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters')
 ], async (req, res) => {
   try {
+    // Validate inputs
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Validation error',
+        errors: errors.array() 
+      });
     }
 
     const { username, password } = req.body;
 
-    console.log('Engineer login attempt:', username);
-    console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
-
-    const engineer = await Engineer.findOne({ username });
+    // Find engineer
+    const engineer = await Engineer.findOne({ username }).select('+password');
     if (!engineer) {
-      console.log('Engineer not found:', username);
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      // Don't reveal if user exists or not (security best practice)
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid username or password' 
+      });
     }
 
+    // Check if account is active
     if (engineer.status !== 'active') {
-      console.log('Engineer account inactive:', username);
-      return res.status(403).json({ success: false, message: 'Account is inactive' });
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Your account has been deactivated. Contact admin.' 
+      });
     }
 
-    const isMatch = await bcrypt.compare(password, engineer.password);
-    if (!isMatch) {
-      console.log('Password mismatch for engineer:', username);
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    // Compare password
+    const isPasswordValid = await bcrypt.compare(password, engineer.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid username or password' 
+      });
     }
 
+    // Check JWT_SECRET
     if (!process.env.JWT_SECRET) {
-      console.error('JWT_SECRET is not set in environment variables');
-      return res.status(500).json({ success: false, message: 'Server configuration error: JWT_SECRET not set' });
+      console.error('❌ JWT_SECRET not configured');
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Server configuration error' 
+      });
     }
 
+    // Generate JWT token
     const token = jwt.sign(
-      { id: engineer._id, role: 'engineer' },
+      { 
+        id: engineer._id, 
+        role: 'engineer',
+        username: engineer.username 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    console.log('Engineer login successful:', username);
+    console.log(`✅ Engineer login successful: ${username}`);
+
     res.json({
       success: true,
-      message: 'Engineer login successful',
+      message: 'Login successful',
       token,
       user: {
         username: engineer.username,
@@ -115,8 +185,49 @@ router.post('/engineer/login', [
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    console.error('❌ Engineer login error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
+  }
+});
+
+// ===== VERIFY TOKEN (Optional) =====
+router.post('/verify', (req, res) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'No token provided' 
+      });
+    }
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Server configuration error' 
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({
+      success: true,
+      message: 'Token is valid',
+      user: {
+        role: decoded.role,
+        username: decoded.username
+      }
+    });
+  } catch (error) {
+    console.error('Token verification error:', error);
+    res.status(401).json({ 
+      success: false, 
+      message: 'Invalid or expired token' 
+    });
   }
 });
 

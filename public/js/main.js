@@ -66,16 +66,25 @@ if (contactForm) {
     });
 }
 
-// Navbar background change on scroll
+// Navbar background change on scroll — use CSS class instead of inline styles
 window.addEventListener('scroll', () => {
     const navbar = document.querySelector('.navbar');
     if (navbar) {
         if (window.scrollY > 50) {
-            navbar.style.backgroundColor = '#1a365d';
-            navbar.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+            navbar.classList.add('scrolled');
         } else {
-            navbar.style.backgroundColor = '#1a365d';
-            navbar.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            navbar.classList.remove('scrolled');
         }
+    }
+});
+
+// Close mobile menu on window resize (prevents stuck menu)
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+        const navbar = document.getElementById("navbar");
+        if (navbar) navbar.classList.remove("active");
+        if (navMenu) navMenu.classList.remove('active');
+        if (hamburger) hamburger.classList.remove('active');
+        document.body.classList.remove('menu-open');
     }
 });

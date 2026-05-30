@@ -9,7 +9,7 @@
     --primary-color: #1a365d;
     --secondary-color: #2c5282;
     --accent-color: #3182ce;
-    --light-color: #f7fafc;
+    --light-color: #3b47f3;
     --dark-color: #1a202c;
     --text-color: #2d3748;
     --white: #ffffff;
@@ -40,6 +40,11 @@ body {
     top: 0;
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.navbar.scrolled {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
 .navbar .container {
@@ -480,13 +485,54 @@ section {
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+    .container {
+        padding: 0 15px;
+    }
+
+    .hero {
+        padding: 120px 0 80px;
+    }
+
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .stats-grid,
+    .services-grid,
+    .clients-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
 @media (max-width: 768px) {
     .nav-menu {
         display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: var(--primary-color);
+        flex-direction: column;
+        padding: 1rem 0;
+        gap: 0;
+    }
+
+    .nav-menu.active {
+        display: flex;
+    }
+
+    .nav-menu a {
+        padding: 1rem 2rem;
+        text-align: center;
     }
 
     .hamburger {
         display: flex;
+    }
+
+    .hero {
+        padding: 100px 0 60px;
     }
 
     .hero-content h1 {
@@ -497,12 +543,154 @@ section {
         font-size: 1.2rem;
     }
 
-    .about-content,
-    .contact-content {
-        grid-template-columns: 1fr;
+    .hero-description {
+        font-size: 1rem;
     }
 
     .hero-buttons {
         flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .hero-buttons .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .about-content,
+    .contact-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .about-image img {
+        order: -1;
+    }
+
+    .stats-grid,
+    .services-grid,
+    .clients-grid,
+    .footer-content {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 2rem;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    .map-container {
+        height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 10px;
+    }
+
+    .nav-brand {
+        font-size: 1.2rem;
+    }
+
+    .nav-brand i {
+        font-size: 1.5rem;
+    }
+
+    .hero {
+        padding: 80px 0 40px;
+    }
+
+    .hero-content h1 {
+        font-size: 1.75rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-description {
+        font-size: 0.9rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .stats-grid,
+    .services-grid,
+    .clients-grid,
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .stat-card,
+    .service-card,
+    .client-card {
+        padding: 1.5rem;
+    }
+
+    .stat-card i,
+    .service-icon {
+        font-size: 2rem;
+    }
+
+    .stat-card h3 {
+        font-size: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .section-header p {
+        font-size: 0.9rem;
+    }
+
+    .contact-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+
+    .contact-item i {
+        margin-bottom: 0.5rem;
+    }
+
+    .footer {
+        padding: 2rem 0 1rem;
+    }
+
+    .footer-section h3,
+    .footer-section h4 {
+        font-size: 1.1rem;
+    }
+
+    .footer-section a {
+        font-size: 0.9rem;
+    }
+
+    .social-links a {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+}
+
+/* Tablet specific adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }

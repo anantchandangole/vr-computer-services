@@ -10,8 +10,17 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
+    <!-- Home Button -->
+    <a href="/admin-dashboard.html" class="home-btn" title="Go to Home">
+        <i class="fas fa-home"></i>
+    </a>
+
     <!-- Login Section -->
     <div id="loginSection" class="auth-wrapper">
+        <!-- Theme Toggle (login page only) -->
+        <button class="theme-toggle-floating" id="themeToggleGlobal" title="Toggle Dark/Light Theme">
+            <i class="fas fa-moon"></i>
+        </button>
         <div class="background-shape"></div>
         <div class="secondary-shape"></div>
         
@@ -84,6 +93,12 @@
 
     <!-- Dashboard Section -->
     <div id="dashboardSection" class="dashboard-container">
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -125,9 +140,14 @@
                 <div class="header-title">
                     <h2 id="pageTitle">Dashboard</h2>
                 </div>
-                <div class="header-user">
-                    <span id="adminName">Administrator</span>
-                    <i class="fas fa-user-circle"></i>
+                <div class="header-actions">
+                    <button class="theme-toggle-btn" id="themeToggle" title="Toggle Dark/Light Theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="header-user">
+                        <span id="adminName">Administrator</span>
+                        <i class="fas fa-user-circle"></i>
+                    </div>
                 </div>
             </header>
 
@@ -351,6 +371,7 @@
         </div>
     </div>
 
+    <script src="js/theme.js"></script>
     <script src="js/admin.js"></script>
 </body>
 </html>
