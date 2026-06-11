@@ -6,41 +6,7 @@ let currentUser = null;
 let map = null;
 let marker = null;
 
-// Theme Management
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('engineerTheme') || 'dark';
-    setTheme(savedTheme);
-}
-
-function setTheme(theme) {
-    const html = document.documentElement;
-    if (theme === 'light') {
-        html.classList.add('light-theme');
-    } else {
-        html.classList.remove('light-theme');
-    }
-    localStorage.setItem('engineerTheme', theme);
-    updateThemeIcon(theme);
-}
-
-function toggleTheme() {
-    const currentTheme = localStorage.getItem('engineerTheme') || 'dark';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-}
-
-function updateThemeIcon(theme) {
-    const icons = theme === 'light' 
-        ? '<i class="fas fa-sun"></i>' 
-        : '<i class="fas fa-moon"></i>';
-    
-    const themeToggleDashboard = document.getElementById('themeToggleEngineer');
-    const themeToggleGlobal = document.getElementById('themeToggleGlobalEngineer');
-    
-    if (themeToggleDashboard) themeToggleDashboard.innerHTML = icons;
-    if (themeToggleGlobal) themeToggleGlobal.innerHTML = icons;
-}
-
+// Theme Management is handled by theme.js
 // Show map with location using Leaflet (OpenStreetMap)
 function showMap(lat, lng) {
     const mapContainer = document.getElementById('map');
@@ -78,18 +44,7 @@ function showMap(lat, lng) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Engineer.js loaded');
     
-    // Initialize theme
-    initializeTheme();
-
-    // Theme toggle buttons
-    const themeToggleDashboard = document.getElementById('themeToggleEngineer');
-    if (themeToggleDashboard) {
-        themeToggleDashboard.addEventListener('click', toggleTheme);
-    }
-    const themeToggleGlobal = document.getElementById('themeToggleGlobalEngineer');
-    if (themeToggleGlobal) {
-        themeToggleGlobal.addEventListener('click', toggleTheme);
-    }
+    // Theme is handled by theme.js
 
     const loginForm = document.getElementById('engineerLoginForm');
     console.log('Login form found:', loginForm ? 'Yes' : 'No');
@@ -106,8 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showLogin();
     }
 
-    // Set current date
-    const today = new Date().toLocaleDateString('en-US', { 
+    // Set current date in IST
+    const now = new Date();
+    const istDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const today = istDate.toLocaleDateString('en-US', { 
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
@@ -206,7 +163,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     localStorage.removeItem('engineerUser');
     authToken = null;
     currentUser = null;
-    showLogin();
+    window.location.href = '/admin';
 });
 
 // Load Today's Attendance
@@ -218,57 +175,84 @@ async function loadTodayAttendance() {
 
         const data = await response.json();
 
+        let sessions = [];
         if (data.success && data.attendance) {
-            const attendance = data.attendance;
+            if (Array.isArray(data.attendance)) {
+                sessions = data.attendance;
+            } else if (Object.keys(data.attendance).length > 0) {
+                sessions = [data.attendance];
+            }
+        }
+
+        if (sessions.length > 0) {
+            const activeSession = sessions.find(s => !s.outTime);
             const statusContent = document.getElementById('statusContent');
 
-            let html = `
-                <div class="status-item">
-                    <span class="status-label">In Time:</span>
-                    <span class="status-value">${attendance.inTime || '-'}</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Out Time:</span>
-                    <span class="status-value">${attendance.outTime || '-'}</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Working Hours:</span>
-                    <span class="status-value">${attendance.workingHours || '-'}</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Status:</span>
-                    <span class="status-badge ${attendance.status}">${attendance.status}</span>
-                </div>
-            `;
-
-            if (attendance.location && attendance.location.address) {
+            let html = '';
+            sessions.forEach((attendance, index) => {
                 html += `
-                    <div class="status-item">
-                        <span class="status-label">Location:</span>
-                        <span class="status-value">${attendance.location.address}</span>
-                    </div>
-                `;
-            }
+                    <div class="session-segment" style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+                        <h4 style="color: var(--accent); margin-bottom: 10px;">Session ${index + 1}</h4>
+                        <div class="status-item">
+                            <span class="status-label">In Time:</span>
+                            <span class="status-value">${attendance.inTime || '-'}</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Out Time:</span>
+                            <span class="status-value">${attendance.outTime || '-'}</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Working Hours:</span>
+                            <span class="status-value">${attendance.workingHours || '-'}</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Status:</span>
+                            <span class="status-badge ${attendance.status}">${attendance.status}</span>
+                        </div>`;
+
+                if (attendance.clockInLocation && attendance.clockInLocation.address) {
+                    html += `
+                        <div class="status-item">
+                            <span class="status-label">Location (In):</span>
+                            <span class="status-value">${attendance.clockInLocation.address}</span>
+                        </div>`;
+                } else if (attendance.location && attendance.location.address) {
+                    html += `
+                        <div class="status-item">
+                            <span class="status-label">Location:</span>
+                            <span class="status-value">${attendance.location.address}</span>
+                        </div>`;
+                }
+                
+                if (attendance.clockOutLocation && attendance.clockOutLocation.address) {
+                    html += `
+                        <div class="status-item">
+                            <span class="status-label">Location (Out):</span>
+                            <span class="status-value">${attendance.clockOutLocation.address}</span>
+                        </div>`;
+                }
+                html += `</div>`;
+            });
 
             statusContent.innerHTML = html;
 
-            // Show/hide sections based on status
-            if (attendance.inTime && !attendance.outTime) {
+            // Show/hide sections based on active session
+            if (activeSession) {
                 document.getElementById('clockInSection').style.display = 'none';
                 document.getElementById('clockOutSection').style.display = 'block';
                 document.getElementById('updateStatusSection').style.display = 'block';
-            } else if (attendance.outTime) {
-                document.getElementById('clockInSection').style.display = 'none';
+            } else {
+                // No active session (all previous are completed)
+                document.getElementById('clockInSection').style.display = 'block';
                 document.getElementById('clockOutSection').style.display = 'none';
                 document.getElementById('updateStatusSection').style.display = 'none';
-                statusContent.innerHTML += '<p style="margin-top: 1rem; color: var(--success); font-weight: 600;">✓ Completed for today</p>';
                 
-                // Disable clock-in form completely
-                document.getElementById('clockInForm').disabled = true;
+                // Enable clock-in form for re-punch
+                document.getElementById('clockInForm').disabled = false;
                 const clockInBtn = document.getElementById('clockInForm').querySelector('button[type="submit"]');
                 if (clockInBtn) {
-                    clockInBtn.disabled = true;
-                    clockInBtn.innerHTML = '<i class="fas fa-check"></i> Already Completed';
+                    clockInBtn.disabled = false;
+                    clockInBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Clock In (New Session)';
                 }
             }
         } else {
@@ -291,10 +275,43 @@ async function loadTodayAttendance() {
     }
 }
 
+// Helper function to get live GPS coordinates using Promises
+function getLiveLocationPromise() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocation is not supported by your browser.'));
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                let address = `${lat}, ${lng}`;
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                    const data = await response.json();
+                    if (data.display_name) {
+                        address = data.display_name;
+                    }
+                } catch (error) {
+                    console.error('Reverse geocoding failed', error);
+                }
+                resolve({ lat, lng, address });
+            },
+            (error) => {
+                let msg = 'Unable to get location.';
+                if (error.code === error.PERMISSION_DENIED) msg = 'Location permission denied.';
+                reject(new Error(msg));
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    });
+}
+
 // Get Location
 function getLocation(latInput, lngInput, addressInput, statusElement = null) {
     const btn = document.activeElement;
-    if (btn) {
+    if (btn && btn.tagName === 'BUTTON') {
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Location...';
     }
@@ -579,13 +596,9 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (data.success && data.attendance) {
-            const attendance = data.attendance;
-            if (attendance.inTime && !attendance.outTime) {
-                alert('You are already clocked in today. Please clock out first.');
-                return;
-            }
-            if (attendance.outTime) {
-                alert('You have already completed attendance for today. Cannot clock in again.');
+            const activeSession = data.attendance.find(s => !s.outTime);
+            if (activeSession) {
+                alert('You are already clocked in and active. Please clock out first.');
                 return;
             }
         }
@@ -598,14 +611,24 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
+
+    // 1. Automatically fetch GPS location first
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Acquiring GPS...';
+    let location = { lat: null, lng: null, address: '' };
+    try {
+        location = await getLiveLocationPromise();
+        // Update the form fields just in case
+        document.getElementById('locationLat').value = location.lat;
+        document.getElementById('locationLng').value = location.lng;
+        document.getElementById('locationAddress').value = location.address;
+    } catch (err) {
+        alert(err.message + ' You must allow location access to Clock In.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        return;
+    }
+
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-
-    const location = {
-        lat: document.getElementById('locationLat').value || null,
-        lng: document.getElementById('locationLng').value || null,
-        address: document.getElementById('locationAddress').value || ''
-    };
-
     const remark = document.getElementById('clockInRemark').value;
     let photoUrl = '';
 
@@ -658,6 +681,18 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
         }
     }
 
+    // Capture client's local time at the moment of clock-in
+    const nowLocal = new Date();
+    const clientDate = [
+        nowLocal.getFullYear(),
+        String(nowLocal.getMonth() + 1).padStart(2, '0'),
+        String(nowLocal.getDate()).padStart(2, '0')
+    ].join('-');
+    const clientTime = [
+        String(nowLocal.getHours()).padStart(2, '0'),
+        String(nowLocal.getMinutes()).padStart(2, '0')
+    ].join(':');
+
     try {
         const response = await fetch(`${API_BASE}/attendance/clock-in`, {
             method: 'POST',
@@ -665,7 +700,7 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ location, photo: photoUrl, remark })
+            body: JSON.stringify({ location, photo: photoUrl, remark, clientDate, clientTime })
         });
 
         const data = await response.json();
@@ -693,14 +728,37 @@ document.getElementById('clockInForm').addEventListener('submit', async (e) => {
 // Clock Out
 document.getElementById('clockOutForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
+    // 1. Automatically fetch GPS location first for Clock Out
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Acquiring GPS...';
+    let location = { lat: null, lng: null, address: '' };
+    try {
+        location = await getLiveLocationPromise();
+    } catch (err) {
+        alert(err.message + ' You must allow location access to Clock Out.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        return;
+    }
+
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     const taskCompleted = document.getElementById('taskCompleted').value;
     const remark = document.getElementById('clockOutRemark').value;
+
+    // Capture client's local time at the moment of clock-out
+    const nowLocal = new Date();
+    const clientDate = [
+        nowLocal.getFullYear(),
+        String(nowLocal.getMonth() + 1).padStart(2, '0'),
+        String(nowLocal.getDate()).padStart(2, '0')
+    ].join('-');
+    const clientTime = [
+        String(nowLocal.getHours()).padStart(2, '0'),
+        String(nowLocal.getMinutes()).padStart(2, '0')
+    ].join(':');
 
     try {
         const response = await fetch(`${API_BASE}/attendance/clock-out`, {
@@ -709,7 +767,7 @@ document.getElementById('clockOutForm').addEventListener('submit', async (e) => 
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ taskCompleted, remark })
+            body: JSON.stringify({ location, taskCompleted, remark, clientDate, clientTime })
         });
 
         const data = await response.json();
@@ -736,14 +794,26 @@ document.getElementById('updateStatusForm').addEventListener('submit', async (e)
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
+
+    // Automatically fetch GPS location for Update Status to prevent tampering
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Acquiring GPS...';
+    let location = { lat: null, lng: null, address: '' };
+    try {
+        location = await getLiveLocationPromise();
+        // Update DOM just to reflect it visually
+        document.getElementById('updateLocationLat').value = location.lat;
+        document.getElementById('updateLocationLng').value = location.lng;
+        document.getElementById('updateLocationAddress').value = location.address;
+    } catch (err) {
+        alert(err.message + ' You must allow location access to update status.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        return;
+    }
+
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
     const status = document.getElementById('currentStatus').value;
-    const location = {
-        lat: document.getElementById('updateLocationLat').value || null,
-        lng: document.getElementById('updateLocationLng').value || null,
-        address: document.getElementById('updateLocationAddress').value || ''
-    };
     const remark = document.getElementById('updateRemark').value;
 
     try {

@@ -9,15 +9,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOVYRIgupAurZup5y1PRh8Ismb1A3lLao&libraries=places" async defer></script>
 </head>
 <body>
-    <!-- Global Theme Toggle (visible on login page) -->
-    <button class="theme-toggle-floating" id="themeToggleGlobalEngineer" title="Toggle Dark/Light Theme">
-        <i class="fas fa-moon"></i>
-    </button>
-
     <!-- Login Section -->
     <div id="loginSection" class="login-container">
+        <!-- Global Theme Toggle (login page only) -->
+        <button class="theme-toggle-floating" id="themeToggleGlobalEngineer" title="Toggle Dark/Light Theme">
+            <i class="fas fa-moon"></i>
+        </button>
         <div class="login-box">
             <div class="login-header">
                 <i class="fas fa-tools"></i>
@@ -84,7 +85,7 @@
                     <div class="form-group">
                         <label for="locationAddress">Location</label>
                         <button type="button" class="btn btn-secondary" id="getLocationBtn">
-                            <i class="fas fa-map-marker-alt"></i> Get Current Location
+                            <i class="fas fa-map-marker-alt"></i> Get Live Location
                         </button>
                         <input type="hidden" id="locationLat">
                         <input type="hidden" id="locationLng">
@@ -212,6 +213,8 @@
         </main>
     </div>
 
-    <script src="js/engineer.js"></script>
+    <script src="js/theme.js?v=3"></script>
+    <script src="js/istDateTime.js?v=3"></script>
+    <script src="js/engineer.js?v=3"></script>
 </body>
 </html>

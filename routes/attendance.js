@@ -4,6 +4,7 @@ const { body, validationResult } = require('express-validator');
 const Attendance = require('../models/Attendance');
 const Engineer = require('../models/Engineer');
 const { authenticate, adminOnly, engineerOnly } = require('../middleware/auth');
+const { getISTDate, getISTTime, parseClientDate, parseClientTime } = require('../utils/istDateTime');
 
 // ===== CLOCK IN =====
 router.post('/clock-in', authenticate, engineerOnly, [
@@ -26,53 +27,42 @@ router.post('/clock-in', authenticate, engineerOnly, [
       });
     }
 
-    const { location, photo, remark } = req.body;
+    const { location, photo, remark, clientDate, clientTime } = req.body;
     const engineerId = req.user._id;
     const engineerName = req.user.name;
 
-    const today = new Date().toISOString().split('T')[0];
-    const now = new Date();
-    const inTime = now.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    // Use client's local time if provided and valid, otherwise fall back to server IST
+    const today = parseClientDate(clientDate) || getISTDate();
+    const inTime = parseClientTime(clientTime) || getISTTime();
 
-    // Check if already clocked in today
-    const existingAttendance = await Attendance.findOne({ engineerId, date: today });
-    if (existingAttendance) {
-      if (existingAttendance.inTime && !existingAttendance.outTime) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Already clocked in today. Please clock out first.' 
-        });
-      }
-      if (existingAttendance.outTime) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Already completed attendance for today. Cannot clock in again.' 
-        });
-      }
+    // Check if there is an active session (not clocked out yet)
+    const existingActiveAttendance = await Attendance.findOne({ engineerId, date: today, outTime: { $exists: false } });
+    if (existingActiveAttendance) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Already clocked in and active. Please clock out first.' 
+      });
     }
 
-    const attendance = await Attendance.findOneAndUpdate(
-      { engineerId, date: today },
-      {
-        engineerId,
-        engineerName,
-        date: today,
-        inTime,
-        location: location ? {
-          lat: parseFloat(location.lat) || null,
-          lng: parseFloat(location.lng) || null,
-          address: String(location.address || '').trim()
-        } : { lat: null, lng: null, address: '' },
-        photo: String(photo || '').trim(),
-        remark: String(remark || '').trim(),
-        status: 'Working'
-      },
-      { upsert: true, new: true }
-    );
+    const locData = location ? {
+      lat: parseFloat(location.lat) || null,
+      lng: parseFloat(location.lng) || null,
+      address: String(location.address || '').trim()
+    } : { lat: null, lng: null, address: '' };
+
+    const attendance = new Attendance({
+      engineerId,
+      engineerName,
+      date: today,
+      inTime,
+      location: locData, // Legacy support
+      clockInLocation: locData, // New field
+      photo: String(photo || '').trim(),
+      remark: String(remark || '').trim(),
+      status: 'Working'
+    });
+    
+    await attendance.save();
 
     console.log(`✅ Clock-in: Engineer ${engineerName} at ${inTime}`);
 
@@ -104,7 +94,15 @@ router.post('/clock-out', authenticate, engineerOnly, [
     .isString()
     .trim()
     .isLength({ max: 500 })
-    .withMessage('Remark cannot exceed 500 characters')
+    .withMessage('Remark cannot exceed 500 characters'),
+  body('location.lat')
+    .optional()
+    .isFloat()
+    .withMessage('Location latitude must be a valid number'),
+  body('location.lng')
+    .optional()
+    .isFloat()
+    .withMessage('Location longitude must be a valid number')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -116,29 +114,28 @@ router.post('/clock-out', authenticate, engineerOnly, [
       });
     }
 
-    const { taskCompleted, remark } = req.body;
+    const { taskCompleted, remark, location, clientDate, clientTime } = req.body;
     const engineerId = req.user._id;
 
-    const today = new Date().toISOString().split('T')[0];
-    const now = new Date();
-    const outTime = now.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    // Use client's local time if provided and valid, otherwise fall back to server IST
+    const today = parseClientDate(clientDate) || getISTDate();
+    const outTime = parseClientTime(clientTime) || getISTTime();
 
-    const attendance = await Attendance.findOne({ engineerId, date: today });
+    // Find the active session for today (where outTime is not set)
+    const attendance = await Attendance.findOne({ engineerId, date: today, outTime: { $exists: false } });
+    
     if (!attendance) {
+      // Check if they are just trying to clock out of a session that is already completed
+      const anyAttendance = await Attendance.findOne({ engineerId, date: today });
+      if (anyAttendance && anyAttendance.outTime) {
+         return res.status(400).json({ 
+           success: false, 
+           message: 'Already clocked out. No active session found.' 
+         });
+      }
       return res.status(400).json({ 
         success: false, 
-        message: 'No clock-in record found for today' 
-      });
-    }
-
-    if (attendance.outTime) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Already clocked out today' 
+        message: 'No active clock-in record found for today.' 
       });
     }
 
@@ -160,10 +157,19 @@ router.post('/clock-out', authenticate, engineerOnly, [
     const workingHours = `${diffHours}h ${diffMins}m`;
 
     attendance.outTime = outTime;
+    attendance.clockOutDate = today;
     attendance.workingHours = workingHours;
     attendance.status = 'Completed';
     attendance.taskCompleted = String(taskCompleted || '').trim();
     if (remark) attendance.remark = String(remark).trim();
+    
+    if (location) {
+      attendance.clockOutLocation = {
+        lat: parseFloat(location.lat) || null,
+        lng: parseFloat(location.lng) || null,
+        address: String(location.address || '').trim()
+      };
+    }
     
     await attendance.save();
 
@@ -211,7 +217,7 @@ router.put('/update-status', authenticate, engineerOnly, [
 
     const { location, status, remark } = req.body;
     const engineerId = req.user._id;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTDate();
 
     const attendance = await Attendance.findOne({ engineerId, date: today });
     if (!attendance) {
@@ -259,12 +265,14 @@ router.put('/update-status', authenticate, engineerOnly, [
 router.get('/my-today', authenticate, engineerOnly, async (req, res) => {
   try {
     const engineerId = req.user._id;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTDate();
 
-    const attendance = await Attendance.findOne({ engineerId, date: today });
+    // Fetch ALL sessions for today, sorted by creation order
+    const attendanceRecords = await Attendance.find({ engineerId, date: today }).sort({ createdAt: 1 });
+    
     res.json({ 
       success: true, 
-      attendance: attendance || null 
+      attendance: attendanceRecords // Now returns an array of segments
     });
   } catch (error) {
     console.error('❌ Error fetching attendance:', error);
@@ -377,17 +385,26 @@ router.get('/all', authenticate, adminOnly, async (req, res) => {
 // ===== GET LIVE ENGINEER LOCATIONS (ADMIN) =====
 router.get('/live-locations', authenticate, adminOnly, async (req, res) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTDate();
 
     const attendance = await Attendance.find({ 
       date: today,
-      status: 'Working',
-      'location.lat': { $exists: true, $ne: null }
-    }).select('engineerId engineerName location status inTime');
+      status: { $in: ['Working', 'Active', 'Idle', 'Pending'] },
+      outTime: { $exists: false }
+    }).select('engineerId engineerName location clockInLocation status inTime');
+
+    // Map clockInLocation to location for backward compatibility with frontend
+    const mappedAttendance = attendance.map(a => {
+        const obj = a.toObject();
+        if (obj.clockInLocation && obj.clockInLocation.lat) {
+            obj.location = obj.clockInLocation;
+        }
+        return obj;
+    }).filter(a => a.location && a.location.lat != null);
 
     res.json({ 
       success: true, 
-      engineers: attendance 
+      engineers: mappedAttendance 
     });
   } catch (error) {
     console.error('❌ Error fetching live locations:', error);

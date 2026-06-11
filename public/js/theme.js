@@ -11,20 +11,34 @@
         html.classList.remove('light-theme');
     }
     
-    // Update theme button icon and add event listener
-    document.addEventListener('DOMContentLoaded', function() {
-        const themeBtn = document.getElementById('themeToggle');
-        if (themeBtn) {
-            // Update icon based on current theme
-            updateThemeIcon(savedTheme);
-            
-            // Add click handler for theme toggle
-            themeBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                toggleTheme();
-            });
-        }
-    });
+    function initTheme() {
+        const themeBtns = [
+            document.getElementById('themeToggle'),
+            document.getElementById('themeToggleGlobal'),
+            document.getElementById('themeToggleEngineer'),
+            document.getElementById('themeToggleGlobalEngineer')
+        ];
+
+        // Update icon based on current theme
+        updateThemeIcon(savedTheme);
+        
+        themeBtns.forEach(function(themeBtn) {
+            if (themeBtn && !themeBtn.dataset.themeInit) {
+                themeBtn.dataset.themeInit = "true"; // Prevent duplicate listeners
+                // Add click handler for theme toggle
+                themeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    toggleTheme();
+                });
+            }
+        });
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTheme);
+    } else {
+        initTheme();
+    }
     
     // Toggle theme function
     function toggleTheme() {
@@ -44,14 +58,16 @@
     
     // Update theme button icon
     function updateThemeIcon(theme) {
-        const themeBtn = document.getElementById('themeToggle');
-        if (themeBtn) {
-            if (theme === 'light') {
-                themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
-            } else {
-                themeBtn.innerHTML = '<i class="fas fa-moon"></i>';
-            }
-        }
+        const iconHtml = theme === 'light' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        const btns = [
+            document.getElementById('themeToggle'),
+            document.getElementById('themeToggleGlobal'),
+            document.getElementById('themeToggleEngineer'),
+            document.getElementById('themeToggleGlobalEngineer')
+        ];
+        btns.forEach(function(btn) {
+            if (btn) btn.innerHTML = iconHtml;
+        });
     }
     
     // Expose functions to global scope if needed

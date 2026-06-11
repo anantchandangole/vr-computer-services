@@ -32,11 +32,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://unpkg.com"],
-      scriptSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://unpkg.com"],
-      imgSrc: ["'self'", "data:", "https://unpkg.com"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://maps.googleapis.com", "https://maps.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https://unpkg.com", "https://maps.gstatic.com", "https://maps.googleapis.com"],
+      connectSrc: ["'self'", "https://maps.googleapis.com", "https://maps.gstatic.com"],
+      fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
@@ -224,6 +224,11 @@ app.get('/admin', (req, res) => {
 
 app.get('/engineer', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'engineer.html'));
+});
+
+// Redirect legacy dashboard link to /admin
+app.get('/admin-dashboard.html', (req, res) => {
+  res.redirect('/admin');
 });
 
 // ===== ERROR HANDLING MIDDLEWARE =====

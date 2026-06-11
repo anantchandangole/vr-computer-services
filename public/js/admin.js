@@ -4,40 +4,34 @@ const API_BASE = '/api';
 let authToken = localStorage.getItem('adminToken');
 let engineerToken = localStorage.getItem('engineerToken');
 
-// Theme Management
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('adminTheme') || 'dark';
-    setTheme(savedTheme);
-}
+// Leaflet Map variables
+window.leafletMap = null;
+window.engineerMarkers = {};
+window.defaultMapCenter = [21.1458, 79.0882]; // Center of India (Nagpur)
 
-function setTheme(theme) {
-    const html = document.documentElement;
-    if (theme === 'light') {
-        html.classList.add('light-theme');
-    } else {
-        html.classList.remove('light-theme');
-    }
-    localStorage.setItem('adminTheme', theme);
-    updateThemeIcon(theme);
-}
+// Backward compatibility
+let engineerMarkers = window.engineerMarkers;
+const defaultMapCenter = window.defaultMapCenter;
 
-function toggleTheme() {
-    const currentTheme = localStorage.getItem('adminTheme') || 'dark';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-}
+// Initialize Leaflet Map
+function initializeLeafletMap() {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer || window.leafletMap) return;
 
-function updateThemeIcon(theme) {
-    const icons = theme === 'light' 
-        ? '<i class="fas fa-sun"></i>' 
-        : '<i class="fas fa-moon"></i>';
+    mapContainer.style.height = '600px';
     
-    const themeToggleBtn = document.getElementById('themeToggle');
-    const themeToggleGlobal = document.getElementById('themeToggleGlobal');
+    // Initialize map
+    window.leafletMap = L.map('map').setView(window.defaultMapCenter, 12);
     
-    if (themeToggleBtn) themeToggleBtn.innerHTML = icons;
-    if (themeToggleGlobal) themeToggleGlobal.innerHTML = icons;
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(window.leafletMap);
+    
+    console.log('✅ Leaflet Map initialized successfully');
 }
+
+// Theme Management handled by theme.js
 
 // Handle browser back/forward navigation
 window.addEventListener('popstate', () => {
@@ -60,8 +54,7 @@ window.addEventListener('beforeunload', () => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Admin.js loaded');
 
-    // Initialize theme
-    initializeTheme();
+    // Theme is initialized by theme.js
 
     const loginForm = document.getElementById('adminLoginForm');
     const engineerLoginForm = document.getElementById('engineerLoginForm');
@@ -145,17 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Theme toggle button (dashboard header)
-    const themeToggleBtn = document.getElementById('themeToggle');
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', toggleTheme);
-    }
-
-    // Theme toggle button (floating, login page)
-    const themeToggleGlobal = document.getElementById('themeToggleGlobal');
-    if (themeToggleGlobal) {
-        themeToggleGlobal.addEventListener('click', toggleTheme);
-    }
+    // Theme toggles are handled by theme.js
 });
 
 // Admin Login Event Listener
@@ -654,7 +637,12 @@ document.getElementById('generateReport').addEventListener('click', async () => 
             tbody.innerHTML = '';
 
             data.attendance.forEach(record => {
-                const location = record.location ? (record.location.address || `${record.location.lat}, ${record.location.lng}`) : '-';
+                let locStr = '-';
+                if (record.clockInLocation && record.clockInLocation.address) {
+                    locStr = record.clockInLocation.address;
+                } else if (record.location && record.location.address) {
+                    locStr = record.location.address;
+                }
                 const row = `
                     <tr>
                         <td>${record.date}</td>
@@ -662,7 +650,7 @@ document.getElementById('generateReport').addEventListener('click', async () => 
                         <td>${record.inTime || '-'}</td>
                         <td>${record.outTime || '-'}</td>
                         <td>${record.workingHours || '-'}</td>
-                        <td>${location}</td>
+                        <td>${locStr}</td>
                         <td>${record.taskCompleted || '-'}</td>
                     </tr>
                 `;
@@ -688,38 +676,143 @@ async function loadLiveTracking() {
             const engineersList = document.getElementById('liveEngineersList');
 
             if (data.engineers.length === 0) {
-                mapContainer.innerHTML = '<p>No engineers currently working</p>';
                 engineersList.innerHTML = '<p>No engineers currently working</p>';
+                
+                // Clear previous markers
+                Object.values(window.engineerMarkers).forEach(marker => {
+                    if (window.leafletMap) window.leafletMap.removeLayer(marker);
+                });
+                window.engineerMarkers = {};
+                
+                // Initialize map if not already initialized
+                if (!window.leafletMap && mapContainer) {
+                    mapContainer.style.height = '600px';
+                    initializeLeafletMap();
+                }
+                
+                if (window.leafletMap) {
+                    window.leafletMap.setView(window.defaultMapCenter, 12);
+                    setTimeout(() => window.leafletMap.invalidateSize(), 100);
+                }
                 return;
             }
 
-            mapContainer.innerHTML = `
-                <div style="text-align: center;">
-                    <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                    <p>Google Maps Integration</p>
-                    <p>${data.engineers.length} engineers currently working</p>
-                    <p style="font-size: 0.875rem; color: #666;">Add your Google Maps API key to enable live tracking</p>
-                </div>
-            `;
+            // Initialize map if not already initialized
+            if (!window.leafletMap && mapContainer) {
+                mapContainer.style.height = '600px';
+                initializeLeafletMap();
+            }
+
+            // Clear previous markers
+            Object.values(window.engineerMarkers).forEach(marker => {
+                if (window.leafletMap) window.leafletMap.removeLayer(marker);
+            });
+            window.engineerMarkers = {};
+
+            // Add markers for each engineer
+            let bounds = []; // Array of [lat, lng] for Leaflet
+            let engineersWithLocation = 0;
 
             engineersList.innerHTML = '';
-            data.engineers.forEach(engineer => {
+
+            data.engineers.forEach((engineer, index) => {
                 const card = `
-                    <div class="engineer-card">
+                    <div class="engineer-card" style="cursor: pointer; transition: transform 0.2s;" onclick="focusEngineer('${engineer.engineerId}')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
                         <h5>${engineer.engineerName}</h5>
                         <p><strong>ID:</strong> ${engineer.engineerId}</p>
                         <p><strong>In Time:</strong> ${engineer.inTime}</p>
-                        <p><strong>Status:</strong> ${engineer.status}</p>
+                        <p><strong>Status:</strong> <span class="status-badge ${engineer.status}">${engineer.status}</span></p>
                         ${engineer.location && engineer.location.address ? `<p><strong>Location:</strong> ${engineer.location.address}</p>` : ''}
+                        ${engineer.location && engineer.location.lat ? `<p><strong>Coordinates:</strong> ${engineer.location.lat.toFixed(4)}, ${engineer.location.lng.toFixed(4)}</p>` : ''}
                     </div>
                 `;
                 engineersList.innerHTML += card;
+
+                // Add marker if location is available
+                if (engineer.location && engineer.location.lat && engineer.location.lng && window.leafletMap) {
+                    const position = [parseFloat(engineer.location.lat), parseFloat(engineer.location.lng)];
+
+                    // Custom Leaflet Icon
+                    const iconUrl = getEngineerMarkerIcon(engineer.status);
+                    const customIcon = L.icon({
+                        iconUrl: iconUrl,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 32],
+                        popupAnchor: [0, -32]
+                    });
+
+                    const marker = L.marker(position, { icon: customIcon, title: engineer.engineerName })
+                        .addTo(window.leafletMap);
+
+                    // Create popup content
+                    const popupContent = `
+                        <div style="font-family: Arial; padding: 10px; width: 250px;">
+                            <h4 style="margin: 0 0 10px 0;">${engineer.engineerName}</h4>
+                            <p><strong>ID:</strong> ${engineer.engineerId}</p>
+                            <p><strong>In Time:</strong> ${engineer.inTime}</p>
+                            <p><strong>Status:</strong> ${engineer.status}</p>
+                            ${engineer.location && engineer.location.address ? `<p><strong>Location:</strong> ${engineer.location.address}</p>` : ''}
+                        </div>
+                    `;
+                    marker.bindPopup(popupContent);
+
+                    window.engineerMarkers[engineer.engineerId] = marker;
+                    bounds.push(position);
+                    engineersWithLocation++;
+                }
             });
+
+            // Fit map to show all markers
+            if (engineersWithLocation > 0 && window.leafletMap) {
+                const leafletBounds = L.latLngBounds(bounds);
+                window.leafletMap.fitBounds(leafletBounds, { padding: [50, 50] });
+            } else if (window.leafletMap) {
+                window.leafletMap.setView(window.defaultMapCenter, 12);
+            }
+
+            // Fix map rendering issue when initialized or displayed from a hidden tab
+            if (window.leafletMap) {
+                setTimeout(() => {
+                    window.leafletMap.invalidateSize();
+                }, 100);
+            }
+
+            console.log(`✅ Loaded ${data.engineers.length} engineers (${engineersWithLocation} with location data)`);
         }
     } catch (error) {
         console.error('Error loading live tracking:', error);
+        alert('Error loading live tracking data. Please try again.');
     }
 }
+
+// Get marker icon based on engineer status
+function getEngineerMarkerIcon(status) {
+    const icons = {
+        'Working': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+        'Idle': 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
+        'Pending': 'http://maps.google.com/mapfiles/ms/icons/orange-dot.png',
+        'Closed': 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+    };
+    return icons[status] || 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+}
+
+// Focus map on specific engineer
+window.focusEngineer = function(engineerId) {
+    console.log("Focusing engineer:", engineerId);
+    if (window.engineerMarkers && window.engineerMarkers[engineerId] && window.leafletMap) {
+        const marker = window.engineerMarkers[engineerId];
+        window.leafletMap.setView(marker.getLatLng(), 16, { animate: true });
+        marker.openPopup();
+        
+        // Scroll map into view smoothly (helpful on mobile/small screens)
+        const mapContainer = document.getElementById('map');
+        if (mapContainer) {
+            mapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    } else {
+        alert("Location data not available for this engineer.");
+    }
+};
 
 document.getElementById('refreshLocations').addEventListener('click', loadLiveTracking);
 

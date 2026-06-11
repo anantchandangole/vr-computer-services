@@ -8,9 +8,17 @@ const Engineer = require('../models/Engineer');
 const { authenticate, adminOnly, engineerOnly } = require('../middleware/auth');
 
 // Configure Multer for Photo Upload
+const fs = require('fs');
+const uploadDir = path.join(__dirname, '../imag');
+
+// Ensure upload directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../imag'));
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);

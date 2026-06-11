@@ -25,7 +25,7 @@ const attendanceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Working', 'Idle', 'Completed', 'Closed', 'Pending'],
+    enum: ['Working', 'Idle', 'Completed', 'Closed', 'Pending', 'Active'],
     default: 'Idle'
   },
   remark: {
@@ -33,15 +33,22 @@ const attendanceSchema = new mongoose.Schema({
     default: ''
   },
   location: {
-    lat: {
-      type: Number
-    },
-    lng: {
-      type: Number
-    },
-    address: {
-      type: String
-    }
+    lat: { type: Number },
+    lng: { type: Number },
+    address: { type: String }
+  },
+  clockInLocation: {
+    lat: { type: Number },
+    lng: { type: Number },
+    address: { type: String }
+  },
+  clockOutLocation: {
+    lat: { type: Number },
+    lng: { type: Number },
+    address: { type: String }
+  },
+  clockOutDate: {
+    type: String
   },
   photo: {
     type: String

@@ -472,6 +472,10 @@ html.light-theme .switch-link a {
     filter: blur(10px);
 }
 
+.auth-wrapper.toggled .welcome-section.signin {
+    pointer-events: none;
+}
+
 .auth-wrapper.toggled .welcome-section.signin .slide-element:nth-child(1) {
     transition-delay: 0s;
 }

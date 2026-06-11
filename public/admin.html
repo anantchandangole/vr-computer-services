@@ -8,15 +8,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
+    <!-- Leaflet Map CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <body>
-    <!-- Home Button -->
-    <a href="/admin-dashboard.html" class="home-btn" title="Go to Home">
-        <i class="fas fa-home"></i>
-    </a>
-
     <!-- Login Section -->
     <div id="loginSection" class="auth-wrapper">
+        <!-- Home Button -->
+        <a href="/" class="home-btn" title="Go to Home">
+            <i class="fas fa-home"></i>
+        </a>
+        
         <!-- Theme Toggle (login page only) -->
         <button class="theme-toggle-floating" id="themeToggleGlobal" title="Toggle Dark/Light Theme">
             <i class="fas fa-moon"></i>
@@ -106,6 +108,10 @@
                 <h3>Admin Panel</h3>
             </div>
             <nav class="sidebar-nav">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
                 <a href="#" class="nav-link active" data-section="dashboard">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
@@ -371,7 +377,8 @@
         </div>
     </div>
 
-    <script src="js/theme.js"></script>
-    <script src="js/admin.js"></script>
+    <script src="js/theme.js?v=3"></script>
+    <script src="js/istDateTime.js?v=3"></script>
+    <script src="js/admin.js?v=3"></script>
 </body>
 </html>
